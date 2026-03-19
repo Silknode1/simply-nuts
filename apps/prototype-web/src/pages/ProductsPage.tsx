@@ -81,7 +81,7 @@ export default function ProductsPage() {
     const size = selectedSizes[product.id] || 'medium'
     const sizeInfo = product.sizes.find((s) => s.size === size)!
     const item: CartItem = {
-      id: `${product.id}-${size}-${Date.now()}`,
+              id: `${product.id}-${size}-${Math.random().toString(36).slice(2)}`,
       productId: product.id,
       productName: product.name,
       containerType: product.type,
