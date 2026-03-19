@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useCartStore } from '../store/cartStore'
 import { Link } from 'react-router-dom'
@@ -7,6 +7,7 @@ import { CreditCard, Truck, Shield, ArrowLeft } from 'lucide-react'
 export default function CheckoutPage() {
   const { items, getTotal, clearCart } = useCartStore()
   const [submitted, setSubmitted] = useState(false)
+    const orderNumber = useRef(Math.floor(Math.random() * 90000) + 10000)
 
   const containerLabels: Record<string, string> = {
     'wooden-box': 'Wooden Box',
@@ -31,7 +32,7 @@ export default function CheckoutPage() {
             tracking details within 24 hours.
           </p>
           <p className="text-sm text-wood-400 mb-8">
-            Order #SN-{Math.floor(Math.random() * 90000) + 10000}
+                        Order #SN-{orderNumber.current}
           </p>
           <Link
             to="/"
