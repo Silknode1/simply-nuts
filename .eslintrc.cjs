@@ -30,5 +30,6 @@ module.exports = {
           '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
           'react/react-in-jsx-scope': 'off', // Not needed with React 17+
           'react/prop-types': 'off', // Using TypeScript for prop types
+        'react/no-unescaped-entities': 'off', // Cosmetic — OK for prototype stage
       },
   };
