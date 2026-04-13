@@ -1,6 +1,8 @@
 {
   "files": [],
   "references": [
-    { "path": "./apps/prototype-web" }
+    { "path": "./apps/prototype-web" },
+    { "path": "./packages/core" },
+    { "path": "./apps/storefront-hydrogen" }
   ]
 }

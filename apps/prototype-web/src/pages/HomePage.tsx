@@ -248,10 +248,10 @@ export default function HomePage() {
               of your main logo with Chippy.
             </p>
             <div className="cta-row">
-              <button className="btn btn-primary" type="button" onClick={replayLaser}>
+              <button className="btn btn-primary" type="button" onClick={replayLaser} aria-label="Replay the laser engraving animation">
                 Replay Laser Burn
               </button>
-              <button className="btn btn-secondary" type="button">
+              <button className="btn btn-secondary" type="button" aria-label="Start a corporate gift order">
                 Start Corporate Order
               </button>
             </div>

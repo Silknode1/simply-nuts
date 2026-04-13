@@ -20,18 +20,25 @@ export default function CartDrawer() {
       <div
         className="fixed inset-0 bg-black/50 z-50"
         onClick={() => setCartOpen(false)}
+        aria-hidden="true"
       />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-cream z-50 shadow-2xl flex flex-col">
+      <div
+        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-cream z-50 shadow-2xl flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping cart"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-wood-200">
           <h2 className="font-display text-xl font-bold text-wood-900">Your Cart</h2>
           <button
             onClick={() => setCartOpen(false)}
             className="p-1 text-wood-500 hover:text-wood-700 bg-transparent border-none cursor-pointer"
+            aria-label="Close cart"
           >
-            <X size={24} />
+            <X size={24} aria-hidden="true" />
           </button>
         </div>
 
@@ -69,8 +76,9 @@ export default function CartDrawer() {
                     <button
                       onClick={() => removeItem(item.id)}
                       className="text-wood-300 hover:text-red-500 bg-transparent border-none cursor-pointer p-1"
+                      aria-label={`Remove ${containerLabels[item.containerType]} ${item.size} from cart`}
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={16} aria-hidden="true" />
                     </button>
                   </div>
 
@@ -79,15 +87,17 @@ export default function CartDrawer() {
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         className="w-7 h-7 rounded-full bg-wood-100 flex items-center justify-center text-wood-600 hover:bg-wood-200 border-none cursor-pointer"
+                        aria-label={`Decrease quantity of ${containerLabels[item.containerType]} ${item.size}`}
                       >
-                        <Minus size={14} />
+                        <Minus size={14} aria-hidden="true" />
                       </button>
                       <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         className="w-7 h-7 rounded-full bg-wood-100 flex items-center justify-center text-wood-600 hover:bg-wood-200 border-none cursor-pointer"
+                        aria-label={`Increase quantity of ${containerLabels[item.containerType]} ${item.size}`}
                       >
-                        <Plus size={14} />
+                        <Plus size={14} aria-hidden="true" />
                       </button>
                     </div>
                     <span className="font-semibold text-wood-900">

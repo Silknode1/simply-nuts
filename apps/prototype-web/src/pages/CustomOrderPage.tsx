@@ -131,18 +131,27 @@ export default function CustomOrderPage() {
                 Choose Your Container
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" role="radiogroup" aria-label="Container type">
                 {CONTAINERS.map((c) => (
                   <button
                     key={c.type}
                     onClick={() => store.setContainerType(c.type)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        store.setContainerType(c.type)
+                      }
+                    }}
+                    role="radio"
+                    aria-checked={store.containerType === c.type}
+                    tabIndex={0}
                     className={`p-6 rounded-xl border-2 transition-all cursor-pointer bg-white text-left ${
                       store.containerType === c.type
                         ? 'border-burn shadow-lg shadow-burn/10'
                         : 'border-wood-100 hover:border-wood-300'
                     }`}
                   >
-                    <div className={`${c.bgClass} rounded-lg h-32 flex items-center justify-center text-5xl mb-4`}>
+                    <div className={`${c.bgClass} rounded-lg h-32 flex items-center justify-center text-5xl mb-4`} aria-hidden="true">
                       {c.emoji}
                     </div>
                     <h3 className="font-display font-semibold text-wood-900">{c.name}</h3>
@@ -223,8 +232,20 @@ export default function CustomOrderPage() {
                       </div>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-wood-300 rounded-xl cursor-pointer hover:border-burn hover:bg-burn/5 transition-colors bg-white">
-                      <Upload size={40} className="text-wood-400 mb-3" />
+                    <label
+                      className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-wood-300 rounded-xl cursor-pointer hover:border-burn hover:bg-burn/5 transition-colors bg-white"
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Upload logo file. Accepts PNG, SVG, or JPG up to 5MB."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          const input = e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement
+                          input?.click()
+                        }
+                      }}
+                    >
+                      <Upload size={40} className="text-wood-400 mb-3" aria-hidden="true" />
                       <span className="font-medium text-wood-600">
                         Drop your logo here
                       </span>

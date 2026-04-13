@@ -13,9 +13,10 @@ export function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen flex flex-col">
+        <a href="#main-content" className="skip-link">Skip to main content</a>
         <Navbar />
         <CartDrawer />
-        <main className="flex-1">
+        <main id="main-content" className="flex-1">
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />

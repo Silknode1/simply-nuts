@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: simply-nuts-dev
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    ports:
+      - "5173:5173"
+      - "3000:3000"
+    env_file:
+      - .env
+
+volumes:
+  node_modules:

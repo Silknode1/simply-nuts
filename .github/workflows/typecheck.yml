@@ -2,30 +2,30 @@ name: CI — Typecheck & Build
 
 on:
   push:
-      branches: [master]
-        pull_request:
-            branches: [master]
+    branches: [master]
+  pull_request:
+    branches: [master]
 
-            jobs:
-              typecheck:
-                  name: TypeScript Typecheck
-                      runs-on: ubuntu-latest
+jobs:
+  typecheck:
+    name: TypeScript Typecheck
+    runs-on: ubuntu-latest
 
-                          steps:
-                                - name: Checkout repository
-                                        uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-                                              - name: Setup Node.js
-                                                      uses: actions/setup-node@v4
-                                                              with:
-                                                                        node-version: '20'
-                                                                                  cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-                                                                                        - name: Install dependencies
-                                                                                                run: npm run setup
+      - name: Install dependencies
+        run: npm run setup
 
-                                                                                                      - name: Run TypeScript typecheck
-                                                                                                              run: npm run typecheck
-                                                                                                              
-                                                                                                                    - name: Build prototype
-                                                                                                                            run: npm run build:prototype
+      - name: Run TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Build prototype
+        run: npm run build:prototype

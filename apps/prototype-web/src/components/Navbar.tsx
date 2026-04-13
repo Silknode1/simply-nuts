@@ -53,10 +53,11 @@ export default function Navbar() {
             <button
               onClick={toggleCart}
               className="relative p-2 text-wood-200 hover:text-gold-400 transition-colors bg-transparent border-none cursor-pointer"
+              aria-label={count > 0 ? `Shopping cart, ${count} item${count === 1 ? '' : 's'}` : 'Shopping cart, empty'}
             >
-              <ShoppingCart size={22} />
+              <ShoppingCart size={22} aria-hidden="true" />
               {count > 0 && (
-                <span className="absolute -top-1 -right-1 bg-burn text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-burn text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center" aria-hidden="true">
                   {count}
                 </span>
               )}
@@ -64,8 +65,10 @@ export default function Navbar() {
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden p-2 text-wood-200 hover:text-gold-400 bg-transparent border-none cursor-pointer"
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileOpen}
             >
-              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+              {mobileOpen ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
             </button>
           </div>
         </div>

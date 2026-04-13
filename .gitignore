@@ -8,3 +8,18 @@ coverage
 bun.lockb
 
 *.tsbuildinfo
+
+# SQLite database files
+*.db
+*.db-wal
+*.db-shm
+
+# Docker
+.docker
+
+# Keep env examples
+!.env.example
+
+# Claude Code session artifacts
+.claude/
+CLAUDE\ -\ *.md

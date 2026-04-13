@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["@shopify/oxygen-workers-types", "@remix-run/dev"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "remix.env.d.ts", "env.d.ts"]
+}

@@ -10,11 +10,17 @@
     "dev:prototype": "npm --workspace @snm/prototype-web run dev",
     "build:prototype": "npm --workspace @snm/prototype-web run build",
     "typecheck": "tsc -b",
+    "migrate": "node --env-file=.env --import tsx packages/core/src/db/runMigrateCli.ts",
+    "dev:hydrogen": "npm --workspace @snm/storefront-hydrogen run dev",
+    "build:hydrogen": "npm --workspace @snm/storefront-hydrogen run build",
+    "test": "vitest",
+    "test:ci": "vitest run",
     "lint": "echo \"lint not configured yet\""
   },
   "devDependencies": {
-    "typescript": "^5.9.2",
     "@types/react": "^18.3.23",
-    "@types/react-dom": "^18.3.7"
+    "@types/react-dom": "^18.3.7",
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.4"
   }
 }

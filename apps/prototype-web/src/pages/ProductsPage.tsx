@@ -201,8 +201,9 @@ export default function ProductsPage() {
                     <button
                       onClick={() => handleAddToCart(product)}
                       className="flex items-center gap-2 px-6 py-3 bg-burn hover:bg-burn-dark text-white font-semibold rounded-lg transition-colors border-none cursor-pointer"
+                      aria-label={`Add ${product.name} to cart`}
                     >
-                      <ShoppingCart size={18} /> Add to Cart
+                      <ShoppingCart size={18} aria-hidden="true" /> Add to Cart
                     </button>
                     <Link
                       to="/custom"
