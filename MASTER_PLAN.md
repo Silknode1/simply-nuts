@@ -102,11 +102,19 @@ Depends on TASK-010 + TASK-011.
 - [ ] Dev can bulk-import via CSV once pricing/images are ready
 
 ### TASK-014: Theme customization to brand (📋 TODO — Dev)
-Depends on TASK-013. Start from Shopify **Dawn** (free) or a premium theme.
+Depends on TASK-013. Start from Shopify **Dawn** (free) or a Dawn-based **Online Store 2.0** theme.
 - [ ] Apply palette (espresso/walnut/copper-gold/pine/cream) + Manrope typography
 - [ ] Add Chippy the Squirrel mascot touches
 - [ ] Homepage: hero, featured collections, trust badges ("37 years", state-fair), email capture
 - [ ] Mobile-first QA
+
+**🔁 Theme portability requirement (must be easy to re-skin / swap later):**
+- [ ] Use only **OS 2.0 sections & blocks** + **theme settings** for layout/colors/fonts — do NOT hard-edit Liquid or hardcode content into templates. Re-theming then becomes editor config, not a code rebuild.
+- [ ] Keep ALL content in Shopify data, never in theme files: products, descriptions, images, collections, and any extra product attributes (allergens, roast level, ingredients) as **metafields**. Content is theme-independent and survives a theme swap.
+- [ ] Brand tokens (colors, fonts, spacing) set via the theme editor (`settings_data.json`), so a future restyle is a settings change.
+- [ ] **Duplicate-before-edit** discipline: keep one unmodified copy of the base theme; only ever edit a duplicate. Maintain a short `docs/THEME_CHANGELOG.md` of any custom CSS/section added.
+- [ ] Minimize lock-in: avoid apps that inject hardcoded theme snippets; avoid deep custom Liquid forks. Prefer app blocks that detach cleanly.
+- [ ] Result: switching to a new theme later = pick theme → re-map sections in editor → content/products/metafields carry over untouched.
 
 ### TASK-015: Shipping configuration (📋 TODO — Dev)
 - [ ] Decide model: flat rate, free-over-threshold, or carrier-calculated (USPS/UPS)
