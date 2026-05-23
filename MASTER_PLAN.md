@@ -104,6 +104,7 @@ Depends on TASK-010 + TASK-011.
 
 ### TASK-014: Theme customization to brand (📋 TODO — Dev)
 Depends on TASK-013. Start from Shopify **Dawn** (free) or a Dawn-based **Online Store 2.0** theme.
+**See `docs/SHOPIFY_SETUP_GUIDE.md`** for the full step-by-step setup + exact brand tokens (colors/fonts) and homepage section plan.
 - [ ] Apply palette (espresso/walnut/copper-gold/pine/cream) + Manrope typography
 - [ ] Add Chippy the Squirrel mascot touches
 - [ ] Homepage: hero, featured collections, trust badges ("37 years", state-fair), email capture
