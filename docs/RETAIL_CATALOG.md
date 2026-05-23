@@ -15,13 +15,13 @@
 
 | Product | 1 lb | 2 lb | 3 lb | Description |
 |---------|------|------|------|-------------|
-| Butter Toffee Peanuts (Secret Peanuts) | $14.99 | $25.98 | $36.97 | This tasty combination of rich butter toffee and fresh peanuts is our signature mix and best seller. Great on ice cream! |
+| Butter Toffee Peanuts (Secret Peanuts) | $14.99 | $25.99 | $36.99 | This tasty combination of rich butter toffee and fresh peanuts is our signature mix and best seller. Great on ice cream! |
 | Honey Cinnamon Almonds | $19.99 | $34.99 | $49.99 | A delicious combination of not-too-sweet, aromatic cinnamon and freshly roasted almonds. Very popular and perfect for the holidays! |
 | Honey Roasted Cashews | $19.99 | $34.99 | $49.99 | The perfect combination of buttery Brazilian cashews slow roasted in a sweet honey glaze. You will go simply nuts for this unique taste. *(was sold out — set to draft)* |
 | Imperial Mix | $19.99 | $34.99 | $49.99 | Colossal cashews, roasted and salted natural almonds, blanched almonds, Brazil nuts, and roasted filberts accented with jumbo pecans. (No peanuts) |
 | Jumbo Cashews | $19.99 | $34.99 | $49.99 | We sell only whole cashews, not pieces. Hand-selected from Brazil for quality, and slow roasted for sweet flavor and crisp texture. The best cashews you can buy. |
-| Louisiana Hot Nuts | $14.99 | $25.98 | $36.97 | A scrumptious blend of chili pepper, garlic, and onion powder. You may want to have a cold beverage handy when indulging. |
-| Natural Pistachios | $16.99 | $31.98 | $46.98 | These natural pistachios are the very best for the pistachio purist. Crack open a handful and taste their unique, one-of-a-kind goodness for yourself. |
+| Louisiana Hot Nuts | $14.99 | $25.99 | $36.99 | A scrumptious blend of chili pepper, garlic, and onion powder. You may want to have a cold beverage handy when indulging. |
+| Natural Pistachios | $16.99 | $31.99 | $46.99 | These natural pistachios are the very best for the pistachio purist. Crack open a handful and taste their unique, one-of-a-kind goodness for yourself. |
 | Pecan Pralines | $19.99 | $34.99 | $49.99 | The rich aroma of irresistible goodness comes packaged especially for you in our pecan pralines. Superb on salads and ice cream. |
 | Roasted Almonds | $19.99 | $34.99 | $49.99 | Packed with only the finest plump California almonds, these west coast nuts are a true treat. A great source of vitamin E and folic acid. |
 
@@ -29,10 +29,10 @@
 
 | Product | 1 lb | 2 lb | 3 lb | Description |
 |---------|------|------|------|-------------|
-| Cranberry Trail Mix | $14.99 | $25.98 | $36.97 | Dried Wisconsin cranberries, golden raisins, roasted and salted almonds, Virginia red-skinned peanuts, sunflower and pumpkin seeds. Fruit and fiber all in one! |
-| Hot & Sassy Mix | $14.99 | $25.98 | $36.97 | A hot, zesty blend of roasted and salted blanched and red-skinned peanuts, hot sesame sticks, chili crackers, sunflower and pumpkin seeds, and corn nuts. |
-| Sesame Mix | $14.99 | $25.98 | $36.97 | Great as a snack or on salads! A mix of sesame sticks, cheddar sesame sticks, and roasted and salted peanuts, cashews, almonds, pumpkin seeds and sunflower seeds. |
-| Ultra Berry | $16.99 | $31.98 | $46.98 | Northern Wisconsin cranberries, Michigan blueberries, and Washington sour cherries make up this one-of-a-kind treat. Buy extra for baking! |
+| Cranberry Trail Mix | $14.99 | $25.99 | $36.99 | Dried Wisconsin cranberries, golden raisins, roasted and salted almonds, Virginia red-skinned peanuts, sunflower and pumpkin seeds. Fruit and fiber all in one! |
+| Hot & Sassy Mix | $14.99 | $25.99 | $36.99 | A hot, zesty blend of roasted and salted blanched and red-skinned peanuts, hot sesame sticks, chili crackers, sunflower and pumpkin seeds, and corn nuts. |
+| Sesame Mix | $14.99 | $25.99 | $36.99 | Great as a snack or on salads! A mix of sesame sticks, cheddar sesame sticks, and roasted and salted peanuts, cashews, almonds, pumpkin seeds and sunflower seeds. |
+| Ultra Berry | $16.99 | $31.99 | $46.99 | Northern Wisconsin cranberries, Michigan blueberries, and Washington sour cherries make up this one-of-a-kind treat. Buy extra for baking! |
 
 ## Chocolates (5)
 
@@ -40,9 +40,9 @@
 |---------|------|------|------|-------------|
 | Chocolate Covered Almonds | $19.99 | $34.99 | $49.99 | We take plump California almonds and cover them in a thick blanket of the finest milk chocolate. Hard to resist! *(was sold out — set to draft; 1 lb raised from $18.99 → $19.99 per owner)* |
 | Chocolate Covered Cashews | $19.99 | $34.99 | $49.99 | Fresh cashews covered in delicious chocolate — a mouthwatering treat! *(1 lb raised from $18.99 → $19.99 per owner)* |
-| Chocolate Double Dipped Peanuts | $14.99 | $25.98 | $36.97 | Fresh jumbo Virginia peanuts are drowned in a thick creamy milk chocolate and then repeated, for a chocolate lover's dream. |
-| Malted Milk Balls | $14.99 | $25.98 | $36.97 | Crisp & crunchy malted milk balls enrobed in our creamy milk chocolate. Always the first to go at any gathering. |
-| Secret Peanuts Surprise | $14.99 | $25.98 | $36.97 | The ultimate blend of indulgence: Secret Toffee Peanuts paired perfectly with Double Dipped Chocolate Peanuts. A harmonious dance of rich buttery toffee and luscious chocolate — perfect for snacking or sharing. |
+| Chocolate Double Dipped Peanuts | $14.99 | $25.99 | $36.99 | Fresh jumbo Virginia peanuts are drowned in a thick creamy milk chocolate and then repeated, for a chocolate lover's dream. |
+| Malted Milk Balls | $14.99 | $25.99 | $36.99 | Crisp & crunchy malted milk balls enrobed in our creamy milk chocolate. Always the first to go at any gathering. |
+| Secret Peanuts Surprise | $14.99 | $25.99 | $36.99 | The ultimate blend of indulgence: Secret Toffee Peanuts paired perfectly with Double Dipped Chocolate Peanuts. A harmonious dance of rich buttery toffee and luscious chocolate — perfect for snacking or sharing. |
 
 ---
 
@@ -51,8 +51,8 @@ These tiers are consistent across the confirmed products (for reference):
 
 | 1 lb base | 2 lb | 3 lb | Seen on |
 |-----------|------|------|---------|
-| $14.99 | $25.98 | $36.97 | All $14.99 products (8 of them — identical) |
-| $16.99 | $31.98 | $46.98 | Natural Pistachios, Ultra Berry |
+| $14.99 | $25.99 | $36.99 | All $14.99 products (8 of them — identical) |
+| $16.99 | $31.99 | $46.99 | Natural Pistachios, Ultra Berry |
 | $19.99 | $34.99 | $49.99 | All eight $19.99 products — standardized per owner |
 
 ## Pricing — finalized ✅
