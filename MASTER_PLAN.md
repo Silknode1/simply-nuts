@@ -13,9 +13,15 @@
 
 | Layer | Approach | Rationale |
 |-------|----------|-----------|
-| **Retail store** (nuts, chocolates, mixes) | **Shopify native theme** (hosted) | Fastest to live. Shopify handles product pages, cart, checkout, payments, tax, shipping out of the box. |
+| **Marketing homepage** (`simplynutsandmore.com`) | **Custom React landing page** (the prototype — laser hero, animations) | Keeps the brand front door already built. Hosted as a static site (Netlify). "Shop" CTAs hand off to the Shopify store. |
+| **Retail commerce** (nuts, chocolates, mixes) | **Shopify native theme** at `shop.` subdomain | Shopify handles catalog, cart, checkout, payments, tax, shipping out of the box. Fast + secure. |
 | **Corporate gifting** (laser-engraved gift containers) | **Custom Hydrogen storefront** (hybrid) | The differentiated tech — logo upload, design preview, CSV recipients — genuinely needs custom code. Built after retail is generating revenue. |
 | **Payments** | **Shopify Payments** | Integrated cards / Shop Pay / Apple & Google Pay, tax + payouts. Owner enters banking details. |
+
+**Hybrid model (Option B):** the custom React landing page is the marketing homepage at the root
+domain; the Shopify store lives at `shop.simplynutsandmore.com` and powers all transactions. The
+landing page links into Shopify (collection/product links, or embedded Shopify Buy Buttons). The
+prototype's mock cart/checkout is removed for retail — Shopify owns the cart.
 
 ---
 
@@ -35,13 +41,16 @@
 | TASK-012 | 📋 TODO | 🔵 Owner | Confirm Shopify plan + connect Shopify Payments (banking) | - | TASK-020 |
 | TASK-013 | 🔄 **IN PROGRESS** | Dev+Owner | Build full retail catalog — data scraped, import CSV drafted | TASK-010, TASK-011 | TASK-014 |
 | TASK-014 | 📋 TODO | Dev | Customize Shopify theme to brand (wood/gold/cream, Manrope, Chippy) | TASK-013 | TASK-021 |
+| TASK-022 | 📋 TODO | Dev | Trim React landing page to marketing-only; wire "Shop" CTAs → Shopify | TASK-013 | TASK-024 |
+| TASK-023 | 📋 TODO | Dev+Owner | Deploy React landing page as static site (Netlify) | TASK-022 | TASK-024 |
+| TASK-024 | 📋 TODO | Dev | Connect landing↔store (Buy Buttons or links); consistent nav/cart handoff | TASK-022, TASK-023 | TASK-020 |
 | TASK-015 | 📋 TODO | Dev | Shipping configuration (rates / free-over-threshold) | - | TASK-020 |
 | TASK-016 | 📋 TODO | Dev+Owner | Tax configuration (MN + interstate nexus) | - | TASK-020 |
 | TASK-017 | 📋 TODO | Dev+Owner | Legal pages: ToS, Privacy, Returns, Shipping policy | - | TASK-020 |
 | TASK-018 | 📋 TODO | Dev | Connect Klaviyo + GA4; email capture on storefront | - | TASK-021 |
-| TASK-019 | 📋 TODO | 🔵 Owner | Domain/DNS: point simplynutsandmore.com to Shopify | TASK-014 | TASK-020 |
-| TASK-020 | 📋 TODO | Dev+Owner | Pre-launch QA + launch checklist (test order end-to-end) | TASK-012,15,16,17,19 | TASK-021 |
-| TASK-021 | 📋 TODO | Dev+Owner | 🚀 RETAIL STORE GO-LIVE | TASK-014,18,20 | TASK-030 |
+| TASK-019 | 📋 TODO | 🔵 Owner | Domain/DNS split: root → landing (Netlify), `shop.` → Shopify | TASK-014, TASK-023 | TASK-020 |
+| TASK-020 | 📋 TODO | Dev+Owner | Pre-launch QA + launch checklist (test order end-to-end) | TASK-012,15,16,17,19,24 | TASK-021 |
+| TASK-021 | 📋 TODO | Dev+Owner | 🚀 RETAIL STORE GO-LIVE | TASK-014,18,20,24 | TASK-030 |
 | TASK-030 | 📋 TODO | Dev | Initialize Hydrogen storefront for corporate (real Storefront API) | TASK-021 | TASK-031 |
 | TASK-031 | 📋 TODO | Dev | Wire draft-order DB layer (fix better-sqlite3 native build) | TASK-030 | TASK-032 |
 | TASK-032 | 📋 TODO | Dev | Corporate customizer: container → logo upload → design preview | TASK-031 | TASK-033 |
@@ -136,13 +145,31 @@ Depends on TASK-013. Start from Shopify **Dawn** (free) or a Dawn-based **Online
 - [ ] Welcome flow + abandoned-cart flow (witty brand voice)
 - [ ] Install GA4
 
-### TASK-019: Domain / DNS 🔵 (📋 TODO — Owner)
-Depends on TASK-014.
-- [ ] Point `simplynutsandmore.com` (or `shop.` subdomain) to Shopify
-- [ ] Verify SSL
+### TASK-022: Trim React landing page to marketing-only (📋 TODO — Dev)
+The prototype (`apps/prototype-web`) becomes the marketing homepage. Remove the mock commerce so
+there's a single source of truth for the cart (Shopify).
+- [ ] Keep: HomePage (landing), About, Contact
+- [ ] Remove/replace mock cart, CheckoutPage, and the prototype's ProductsPage commerce logic
+- [ ] Point all "Shop" / product CTAs to the Shopify store (`shop.` subdomain)
+- [ ] Verify build still passes (`npm run build:prototype`)
+
+### TASK-023: Deploy React landing page (📋 TODO — Dev+Owner)
+- [ ] Deploy `apps/prototype-web` as a static site on **Netlify** (build: `npm run build:prototype`, publish: `apps/prototype-web/dist`)
+- [ ] 🔵 Owner: connect the Netlify site to the root domain
+
+### TASK-024: Connect landing ↔ store (📋 TODO — Dev)
+- [ ] Choose handoff: simple links to Shopify collection/product pages **or** embedded **Shopify Buy Buttons** (add-to-cart on the landing page, checkout on Shopify)
+- [ ] Consistent header/nav and "Cart" affordance across both surfaces
+- [ ] Match branding so the handoff feels seamless
+
+### TASK-019: Domain / DNS split 🔵 (📋 TODO — Owner)
+Depends on TASK-014 + TASK-023.
+- [ ] Point `simplynutsandmore.com` (root) → Netlify landing page
+- [ ] Point `shop.simplynutsandmore.com` → Shopify store
+- [ ] Verify SSL on both
 
 ### TASK-020: Pre-launch QA + checklist (📋 TODO — Dev+Owner)
-Depends on TASK-012,15,16,17,19.
+Depends on TASK-012,15,16,17,19,24.
 - [ ] Place a real end-to-end test order (refund after)
 - [ ] Verify confirmation email, tax, shipping, receipt
 - [ ] Mobile + desktop pass; broken-link sweep
