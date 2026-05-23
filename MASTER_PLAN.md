@@ -30,10 +30,10 @@
 |----|--------|-------|-------|---------|--------|
 | ~~TASK-001~~ | ✅ **DONE** | Dev | Phase 1 backend/DB/test/CI foundation committed & pushed | - | - |
 | ~~TASK-002~~ | ✅ **DONE** | Dev | Repo hygiene — remove iCloud sync conflict artifacts | - | - |
-| TASK-010 | 📋 TODO | 🔵 Owner | Finalize real retail pricing for every nut/chocolate/mix | - | TASK-013 |
+| TASK-010 | 🔄 **IN PROGRESS** | 🔵 Owner | Finalize retail pricing — 14/18 confirmed; 4 need 2lb/3lb prices | - | TASK-013 |
 | TASK-011 | 📋 TODO | 🔵 Owner | Create product photography for each nut & mix | - | TASK-013 |
 | TASK-012 | 📋 TODO | 🔵 Owner | Confirm Shopify plan + connect Shopify Payments (banking) | - | TASK-020 |
-| TASK-013 | 📋 TODO | Dev+Owner | Build full retail product catalog in Shopify | TASK-010, TASK-011 | TASK-014 |
+| TASK-013 | 🔄 **IN PROGRESS** | Dev+Owner | Build full retail catalog — data scraped, import CSV drafted | TASK-010, TASK-011 | TASK-014 |
 | TASK-014 | 📋 TODO | Dev | Customize Shopify theme to brand (wood/gold/cream, Manrope, Chippy) | TASK-013 | TASK-021 |
 | TASK-015 | 📋 TODO | Dev | Shipping configuration (rates / free-over-threshold) | - | TASK-020 |
 | TASK-016 | 📋 TODO | Dev+Owner | Tax configuration (MN + interstate nexus) | - | TASK-020 |
@@ -74,11 +74,13 @@ Removed iCloud sync-conflict duplicates (" 2"/" 3" files) including artifacts in
 
 **Goal:** A customer can browse nuts/chocolates/mixes, add to cart, and check out with real payment.
 
-### TASK-010: Finalize retail pricing 🔵 ⛔ (📋 TODO — Owner)
-Real per-unit retail price for every SKU (by weight/package). Today the code has placeholder
-per-oz figures ($1.20–$2.50/oz). Needed before catalog entry.
-- [ ] Decide retail package sizes (e.g. 8oz / 1lb bags, gift jars)
-- [ ] Set price per SKU + any bundle pricing
+### TASK-010: Finalize retail pricing 🔵 (🔄 IN PROGRESS — Owner)
+**Scraped from live simplynutsandmore.com (2026-05-23) → `docs/RETAIL_CATALOG.md`.**
+18 products captured; sizes are 1 / 2 / 3 lb bags. 1 lb prices confirmed for all 18; full
+1/2/3 lb pricing confirmed for 14.
+- [x] Package sizes confirmed: 1 lb / 2 lb / 3 lb bags
+- [x] Per-SKU pricing captured for 14 products
+- [ ] ⚠️ Confirm 2 lb / 3 lb prices for 4 products: Honey Roasted Cashews, Roasted Almonds, Chocolate Covered Almonds, Chocolate Covered Cashews
 - [ ] Confirm allergen statements per product
 
 ### TASK-011: Product photography 🔵 ⛔ (📋 TODO — Owner)
@@ -93,13 +95,14 @@ Candied Pecans, Macadamia, Pistachios, Walnuts, Premium Mix, Trail Mix — plus 
 - [ ] Activate **Shopify Payments** (requires business banking + EIN — **you enter these**)
 - [ ] Set payout schedule
 
-### TASK-013: Build retail product catalog in Shopify (📋 TODO — Dev+Owner)
+### TASK-013: Build retail product catalog in Shopify (🔄 IN PROGRESS — Dev+Owner)
 Depends on TASK-010 + TASK-011.
-- [ ] Create Products for each nut/chocolate/mix with variants (sizes)
-- [ ] Upload images, write brand-voice descriptions (warm, witty — per brand guide)
-- [ ] Organize into Collections (Nuts · Chocolates · Mixes · Best Sellers)
-- [ ] Set inventory tracking + SKUs
-- [ ] Dev can bulk-import via CSV once pricing/images are ready
+- [x] Catalog data captured → `docs/RETAIL_CATALOG.md` (18 products, descriptions, prices)
+- [x] Shopify import file drafted → `db/seed/shopify-products-import.csv` (Size variants, SKUs, weights, collections). Sold-out items (Honey Roasted Cashews, Chocolate Covered Almonds) set to `draft`. The 4 TBC products include only the confirmed 1 lb variant for now.
+- [ ] Owner: confirm the 4 TBC bulk prices → add their 2/3 lb rows to the CSV
+- [ ] Owner: supply product photos (TASK-011) → add to `Image Src` / upload in admin
+- [ ] Import CSV into Shopify; organize Collections (Nuts · Trail Mixes · Chocolates · Best Sellers)
+- [ ] Add allergen/ingredient metafields (theme-independent — see TASK-014)
 
 ### TASK-014: Theme customization to brand (📋 TODO — Dev)
 Depends on TASK-013. Start from Shopify **Dawn** (free) or a Dawn-based **Online Store 2.0** theme.
