@@ -1,0 +1,24 @@
+# Netlify deploy config — Simply Nuts marketing landing page (apps/prototype-web).
+# This deploys ONLY the React marketing site. The Shopify store is separate
+# (shop.simplynutsandmore.com) and is not built here.
+#
+# The repo is an npm-workspaces monorepo, so the build runs from the repo root
+# (base = repo root) and outputs to the prototype app's dist folder.
+
+[build]
+  # Runs from repo root; npm workspaces resolves @snm/core, @snm/ui, @snm/types.
+  command = "npm run build:prototype"
+  publish = "apps/prototype-web/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Skip optional/platform native rebuilds we don't need for a browser build.
+  NPM_FLAGS = "--no-audit --no-fund"
+
+# SPA fallback: React Router serves /about and /contact client-side.
+# Existing static files (e.g. /brand/*.jpg) are served first; everything else
+# falls back to index.html so direct loads / refreshes don't 404.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
