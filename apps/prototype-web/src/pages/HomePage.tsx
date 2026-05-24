@@ -99,10 +99,12 @@ const stickyPhases: CardContent[][] = [
 ];
 
 const productHighlights = [
-  {title: 'Butter Toffee Peanuts', image: '/brand/butter-toffee-peanuts.jpg'},
-  {title: 'Honey Roasted Cashews', image: '/brand/retail-honey-cashews.jpeg'},
-  {title: 'Chocolate Almonds', image: '/brand/retail-choc-almonds.jpg'},
-  {title: 'Cranberry Trail Mix', image: '/brand/retail-cran-trailmix.jpg'}
+  {title: 'Secret Peanuts (Butter Toffee)', image: '/brand/secret-peanuts.jpg'},
+  {title: 'Jumbo Cashews', image: '/brand/cashews.jpg'},
+  {title: 'Cranberry Trail Mix', image: '/brand/cranberry-trail-mix.jpg'},
+  {title: 'Pecan Pralines', image: '/brand/pecan-pralines.jpg'},
+  {title: 'Dark Chocolate Almonds', image: '/brand/dark-chocolate-almonds.jpg'},
+  {title: 'Ultra Berry', image: '/brand/ultra-berry.jpg'}
 ];
 
 function useRevealObserver() {

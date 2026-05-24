@@ -61,6 +61,34 @@ All 19 products have complete 1/2/3 lb pricing. The 4 previously-unconfirmed ite
 the owner to $19.99 / $34.99 / $49.98. Remaining owner inputs are product photos (TASK-011) and
 allergen statements.
 
+## Product images (in `apps/prototype-web/public/brand/`)
+Provided by owner 2026-05-23. Upload these to the matching Shopify product (TASK-013).
+
+| Product | Image file |
+|---------|-----------|
+| Butter Toffee Peanuts (Secret Peanuts) | `secret-peanuts.jpg` |
+| Honey Cinnamon Almonds | `cinnamon-almonds.jpg` |
+| Honey Roasted Cashews | `honey-roasted-cashews.jpg` |
+| Imperial Mix | `imperial-mix.jpg` |
+| Jumbo Cashews | `cashews.jpg` |
+| Louisiana Hot Nuts | `hot-nuts.jpg` |
+| Natural Pistachios | `pistacios.jpg` |
+| Pecan Pralines | `pecan-pralines.jpg` |
+| Roasted Almonds | `roasted-almonds.jpg` |
+| Cranberry Trail Mix | `cranberry-trail-mix.jpg` |
+| Hot & Sassy Mix | ⚠️ **missing — needs a photo** |
+| Sesame Mix | `sesame-mix.jpg` |
+| Ultra Berry | `ultra-berry.jpg` |
+| Chocolate Covered Almonds | `chocolate-almonds.jpg` |
+| Chocolate Covered Cashews | `chocolate-cashews.jpg` |
+| Chocolate Double Dipped Peanuts | `chocolate-peanuts.jpg` |
+| Malted Milk Balls | `milk-balls.jpg` |
+| Secret Peanuts Surprise | `secret-peanuts-surprise.jpg` |
+| Dark Chocolate Almonds | `dark-chocolate-almonds.jpg` |
+
+Once the landing site is deployed (Netlify, TASK-023), these are reachable at
+`https://<domain>/brand/<file>` and can be auto-populated into the CSV's `Image Src` column.
+
 ## Notes for Shopify build (TASK-013)
 - Collections: **Nuts**, **Trail Mixes**, **Chocolates** (matches the site's "Treats by the Pound" structure).
 - Variant option name: **Size** → values **1 lb / 2 lb / 3 lb**. Variant weights: 1 lb ≈ 454 g, 2 lb ≈ 907 g, 3 lb ≈ 1361 g (for shipping rates).
