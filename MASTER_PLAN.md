@@ -41,7 +41,7 @@ prototype's mock cart/checkout is removed for retail — Shopify owns the cart.
 | TASK-012 | 📋 TODO | 🔵 Owner | Confirm Shopify plan + connect Shopify Payments (banking) | - | TASK-020 |
 | TASK-013 | 🔄 **IN PROGRESS** | Dev+Owner | Build full retail catalog — data scraped, import CSV drafted | TASK-010, TASK-011 | TASK-014 |
 | TASK-014 | 📋 TODO | Dev | Customize Shopify theme to brand (wood/gold/cream, Manrope, Chippy) | TASK-013 | TASK-021 |
-| TASK-022 | 📋 TODO | Dev | Trim React landing page to marketing-only; wire "Shop" CTAs → Shopify | TASK-013 | TASK-024 |
+| ~~TASK-022~~ | ✅ **DONE** | Dev | Trimmed landing page to marketing-only; "Shop" CTAs → Shopify | TASK-013 | TASK-024 |
 | TASK-023 | 📋 TODO | Dev+Owner | Deploy React landing page as static site (Netlify) | TASK-022 | TASK-024 |
 | TASK-024 | 📋 TODO | Dev | Connect landing↔store (Buy Buttons or links); consistent nav/cart handoff | TASK-022, TASK-023 | TASK-020 |
 | TASK-015 | 📋 TODO | Dev | Shipping configuration (rates / free-over-threshold) | - | TASK-020 |
@@ -136,22 +136,30 @@ Depends on TASK-013. Start from Shopify **Dawn** (free) or a Dawn-based **Online
 - [ ] Enable Shopify automatic tax; set MN origin
 - [ ] Confirm nexus states (where you must collect)
 
-### TASK-017: Legal pages (📋 TODO — Dev+Owner)
-- [ ] Terms of Service, Privacy Policy, Refund/Return policy, Shipping policy
-- [ ] Food-handling/labeling compliance note (MN + interstate)
+### TASK-017: Legal pages (🔄 IN PROGRESS — Dev+Owner)
+Drafts ready in `docs/LEGAL_POLICIES.md` (Shipping, Refund/Return, Privacy, ToS).
+- [x] Draft all four policies (with bracketed fields + allergen notice)
+- [ ] ⚠️ Owner: attorney review (liability, allergen language, privacy/state-law) + fill bracketed fields
+- [ ] Publish in Shopify (Settings → Policies) and link in footer
 
-### TASK-018: Klaviyo + GA4 + email capture (📋 TODO — Dev)
-- [ ] Connect Klaviyo to the Shopify store (you have it installed)
-- [ ] Welcome flow + abandoned-cart flow (witty brand voice)
+### TASK-018: Klaviyo + GA4 + email capture (🔄 IN PROGRESS — Dev)
+Email flow drafts ready in `docs/KLAVIYO_EMAIL_SEQUENCES.md` (welcome, abandoned cart, post-purchase, seasonal).
+- [x] Draft welcome + abandoned-cart + post-purchase flows (brand voice)
+- [ ] Connect Klaviyo ↔ Shopify; build flows from the drafts
+- [ ] Newsletter signup on landing page → Klaviyo list
 - [ ] Install GA4
 
-### TASK-022: Trim React landing page to marketing-only (📋 TODO — Dev)
-The prototype (`apps/prototype-web`) becomes the marketing homepage. Remove the mock commerce so
-there's a single source of truth for the cart (Shopify).
-- [ ] Keep: HomePage (landing), About, Contact
-- [ ] Remove/replace mock cart, CheckoutPage, and the prototype's ProductsPage commerce logic
-- [ ] Point all "Shop" / product CTAs to the Shopify store (`shop.` subdomain)
-- [ ] Verify build still passes (`npm run build:prototype`)
+### ~~TASK-022~~: Trim React landing page to marketing-only (✅ DONE — Dev)
+The prototype (`apps/prototype-web`) is now the marketing homepage. Mock commerce removed from the
+live app; Shopify is the single source of truth for the cart.
+- [x] Live routes: Home (`/`), About (`/about`), Contact (`/contact`) only
+- [x] Removed cart drawer + cart badge from the live app and Navbar
+- [x] Added central `src/config.ts` → `SHOP_URL` / `SHOP_COLLECTIONS` for all "Shop" CTAs
+- [x] Navbar "Shop" → Shopify (external); "Corporate Gifting" → Contact; Footer shop links → Shopify collections
+- [x] HomePage hero "Shop Our Treats" → Shopify; replaced mock catalog with a "Featured Treats" grid + Shop All CTA
+- [x] CartDrawer/CheckoutPage/ProductsPage/CustomizerPage **kept** in repo (unrouted) as Phase 2 reference
+- [x] Typecheck + build pass (1,873 modules, bundle reduced)
+- Note: update `SHOP_URL` in `apps/prototype-web/src/config.ts` once the Shopify domain is live
 
 ### TASK-023: Deploy React landing page (📋 TODO — Dev+Owner)
 - [ ] Deploy `apps/prototype-web` as a static site on **Netlify** (build: `npm run build:prototype`, publish: `apps/prototype-web/dist`)

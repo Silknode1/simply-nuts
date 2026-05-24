@@ -121,10 +121,10 @@ export default function AboutPage() {
             Whether it's 10 gifts or 10,000, we'll make each one perfect.
           </p>
           <Link
-            to="/custom"
+            to="/contact"
             className="inline-flex items-center gap-2 px-8 py-4 bg-burn hover:bg-burn-light text-white font-semibold rounded-lg transition-colors no-underline"
           >
-            Start Your Order
+            Get a Corporate Quote
           </Link>
         </div>
       </section>

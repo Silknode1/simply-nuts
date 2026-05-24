@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {getMockProducts} from '@snm/core';
+import {useNavigate} from 'react-router-dom';
+import {SHOP_URL} from '../config';
 
 type ContainerKey = 'wood' | 'bamboo' | 'tin';
 
@@ -133,7 +134,7 @@ function clamp(value: number, min: number, max: number) {
 export default function HomePage() {
   useRevealObserver();
 
-  const products = getMockProducts();
+  const navigate = useNavigate();
   const [container, setContainer] = useState<ContainerKey>('wood');
   const [includeChippy, setIncludeChippy] = useState(true);
   const [engravingText, setEngravingText] = useState('SIMPLY NUTS & MORE');
@@ -248,10 +249,10 @@ export default function HomePage() {
               of your main logo with Chippy.
             </p>
             <div className="cta-row">
-              <button className="btn btn-primary" type="button" onClick={replayLaser} aria-label="Replay the laser engraving animation">
-                Replay Laser Burn
-              </button>
-              <button className="btn btn-secondary" type="button" aria-label="Start a corporate gift order">
+              <a className="btn btn-primary" href={SHOP_URL} aria-label="Shop our nuts, trail mixes and chocolates">
+                Shop Our Treats
+              </a>
+              <button className="btn btn-secondary" type="button" onClick={() => navigate('/contact')} aria-label="Start a corporate gift order">
                 Start Corporate Order
               </button>
             </div>
@@ -409,16 +410,18 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="catalog" data-reveal>
-          <h2>Shared Commerce Data (Prototype Layer)</h2>
-          <ul>
-            {products.map((product) => (
-              <li key={product.id}>
-                <strong>{product.title}</strong>
-                <span>${product.price.toFixed(2)}</span>
-              </li>
+        <section className="catalog" data-reveal aria-label="Featured treats">
+          <h2>Shop Our Freshly Roasted Treats</h2>
+          <p>Premium nuts, trail mixes, and chocolates — by the pound, shipped fresh from Minnesota.</p>
+          <div className="featured-grid">
+            {productHighlights.map((item) => (
+              <a key={item.title} className="featured-card" href={SHOP_URL}>
+                <img src={item.image} alt={item.title} loading="lazy" />
+                <strong>{item.title}</strong>
+              </a>
             ))}
-          </ul>
+          </div>
+          <a className="btn btn-primary featured-shop-all" href={SHOP_URL}>Shop All Treats</a>
         </section>
       </main>
     </div>

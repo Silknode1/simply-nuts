@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { SHOP_URL, SHOP_COLLECTIONS } from '../config'
 
 export default function Footer() {
   return (
@@ -23,10 +24,10 @@ export default function Footer() {
           <div>
             <h4 className="font-display font-semibold text-gold-400 mb-3">Shop</h4>
             <ul className="space-y-2 text-sm list-none p-0">
-              <li><Link to="/products" className="hover:text-gold-300 text-wood-400 no-underline">All Products</Link></li>
-              <li><Link to="/products?type=wooden-box" className="hover:text-gold-300 text-wood-400 no-underline">Wooden Boxes</Link></li>
-              <li><Link to="/products?type=bamboo-container" className="hover:text-gold-300 text-wood-400 no-underline">Bamboo Containers</Link></li>
-              <li><Link to="/products?type=gift-tin" className="hover:text-gold-300 text-wood-400 no-underline">Gift Tins</Link></li>
+              <li><a href={SHOP_URL} className="hover:text-gold-300 text-wood-400 no-underline">All Treats</a></li>
+              <li><a href={SHOP_COLLECTIONS.nuts} className="hover:text-gold-300 text-wood-400 no-underline">Nuts</a></li>
+              <li><a href={SHOP_COLLECTIONS.trailMixes} className="hover:text-gold-300 text-wood-400 no-underline">Trail Mixes</a></li>
+              <li><a href={SHOP_COLLECTIONS.chocolates} className="hover:text-gold-300 text-wood-400 no-underline">Chocolates</a></li>
             </ul>
           </div>
 
@@ -35,7 +36,7 @@ export default function Footer() {
             <h4 className="font-display font-semibold text-gold-400 mb-3">Company</h4>
             <ul className="space-y-2 text-sm list-none p-0">
               <li><Link to="/about" className="hover:text-gold-300 text-wood-400 no-underline">About Us</Link></li>
-              <li><Link to="/custom" className="hover:text-gold-300 text-wood-400 no-underline">Custom Orders</Link></li>
+              <li><Link to="/contact" className="hover:text-gold-300 text-wood-400 no-underline">Corporate Gifting</Link></li>
               <li><Link to="/contact" className="hover:text-gold-300 text-wood-400 no-underline">Contact</Link></li>
             </ul>
           </div>

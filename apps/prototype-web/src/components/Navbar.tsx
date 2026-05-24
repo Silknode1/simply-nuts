@@ -1,23 +1,41 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ShoppingCart, Menu, X } from 'lucide-react'
-import { useCartStore } from '../store/cartStore'
+import { Menu, X } from 'lucide-react'
+import { SHOP_URL } from '../config'
+
+type NavLink = { to: string; label: string; external?: boolean }
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
-  const { toggleCart, getItemCount } = useCartStore()
-  const count = getItemCount()
 
-  const links = [
+  const links: NavLink[] = [
     { to: '/', label: 'Home' },
-    { to: '/products', label: 'Shop' },
-    { to: '/custom', label: 'Custom Orders' },
+    { to: SHOP_URL, label: 'Shop', external: true },
+    { to: '/contact', label: 'Corporate Gifting' },
     { to: '/about', label: 'About' },
     { to: '/contact', label: 'Contact' },
   ]
 
-  const isActive = (path: string) => location.pathname === path
+  const isActive = (link: NavLink) => !link.external && location.pathname === link.to
+
+  const linkClass = (active: boolean) =>
+    `text-sm font-medium transition-colors no-underline ${
+      active ? 'text-gold-400' : 'text-wood-200 hover:text-gold-300'
+    }`
+
+  const renderLink = (link: NavLink, onClick?: () => void, block = false) => {
+    const cls = `${block ? 'block py-2 ' : ''}${linkClass(isActive(link))}`
+    return link.external ? (
+      <a key={link.label} href={link.to} className={cls} onClick={onClick}>
+        {link.label}
+      </a>
+    ) : (
+      <Link key={link.label} to={link.to} className={cls} onClick={onClick}>
+        {link.label}
+      </Link>
+    )
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-wood-950/95 backdrop-blur-md border-b border-wood-800">
@@ -33,35 +51,11 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6">
-            {links.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`text-sm font-medium transition-colors no-underline ${
-                  isActive(link.to)
-                    ? 'text-gold-400'
-                    : 'text-wood-200 hover:text-gold-300'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => renderLink(link))}
           </div>
 
-          {/* Cart + Mobile Toggle */}
+          {/* Mobile Toggle */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={toggleCart}
-              className="relative p-2 text-wood-200 hover:text-gold-400 transition-colors bg-transparent border-none cursor-pointer"
-              aria-label={count > 0 ? `Shopping cart, ${count} item${count === 1 ? '' : 's'}` : 'Shopping cart, empty'}
-            >
-              <ShoppingCart size={22} aria-hidden="true" />
-              {count > 0 && (
-                <span className="absolute -top-1 -right-1 bg-burn text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center" aria-hidden="true">
-                  {count}
-                </span>
-              )}
-            </button>
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden p-2 text-wood-200 hover:text-gold-400 bg-transparent border-none cursor-pointer"
@@ -77,20 +71,7 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="md:hidden bg-wood-950 border-t border-wood-800 px-4 pb-4">
-          {links.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              onClick={() => setMobileOpen(false)}
-              className={`block py-2 text-sm font-medium no-underline ${
-                isActive(link.to)
-                  ? 'text-gold-400'
-                  : 'text-wood-200 hover:text-gold-300'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {links.map((link) => renderLink(link, () => setMobileOpen(false), true))}
         </div>
       )}
     </nav>
