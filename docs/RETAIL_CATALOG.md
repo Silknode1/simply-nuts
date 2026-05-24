@@ -76,7 +76,7 @@ Provided by owner 2026-05-23. Upload these to the matching Shopify product (TASK
 | Pecan Pralines | `pecan-pralines.jpg` |
 | Roasted Almonds | `roasted-almonds.jpg` |
 | Cranberry Trail Mix | `cranberry-trail-mix.jpg` |
-| Hot & Sassy Mix | ⚠️ **missing — needs a photo** |
+| Hot & Sassy Mix | `hot-and-sassy.jpg` |
 | Sesame Mix | `sesame-mix.jpg` |
 | Ultra Berry | `ultra-berry.jpg` |
 | Chocolate Covered Almonds | `chocolate-almonds.jpg` |
