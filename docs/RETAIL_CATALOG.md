@@ -72,7 +72,7 @@ Provided by owner 2026-05-23. Upload these to the matching Shopify product (TASK
 | Imperial Mix | `imperial-mix.jpg` |
 | Jumbo Cashews | `cashews.jpg` |
 | Louisiana Hot Nuts | `hot-nuts.jpg` |
-| Natural Pistachios | `pistacios.jpg` |
+| Natural Pistachios | `pistachios.jpg` |
 | Pecan Pralines | `pecan-pralines.jpg` |
 | Roasted Almonds | `roasted-almonds.jpg` |
 | Cranberry Trail Mix | `cranberry-trail-mix.jpg` |
