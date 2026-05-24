@@ -162,9 +162,10 @@ live app; Shopify is the single source of truth for the cart.
 - [x] Typecheck + build pass (1,873 modules, bundle reduced)
 - Note: update `SHOP_URL` in `apps/prototype-web/src/config.ts` once the Shopify domain is live
 
-### TASK-023: Deploy React landing page (📋 TODO — Dev+Owner)
-- [ ] Deploy `apps/prototype-web` as a static site on **Netlify** (build: `npm run build:prototype`, publish: `apps/prototype-web/dist`)
-- [ ] 🔵 Owner: connect the Netlify site to the root domain
+### TASK-023: Deploy React landing page (🔄 IN PROGRESS — Dev+Owner)
+- [x] `netlify.toml` added (build `npm run build:prototype`, publish `apps/prototype-web/dist`, Node 20, SPA redirect)
+- [ ] 🔵 Owner: connect the GitHub repo in Netlify (auto-detects netlify.toml) → first deploy
+- [ ] 🔵 Owner: connect the Netlify site to the root domain (TASK-019)
 
 ### TASK-024: Connect landing ↔ store (📋 TODO — Dev)
 - [ ] Choose handoff: simple links to Shopify collection/product pages **or** embedded **Shopify Buy Buttons** (add-to-cart on the landing page, checkout on Shopify)
