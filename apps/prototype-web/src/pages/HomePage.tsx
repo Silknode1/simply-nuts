@@ -26,75 +26,73 @@ const containers: Record<ContainerKey, ContainerPreset> = {
 const stickyPhases: CardContent[][] = [
   [
     {
-      badge: 'Retail + State Fair',
-      title: 'In-person channels that build trust and momentum.',
+      badge: 'Minnesota State Fair',
+      title: 'Catch us where Minnesota gathers.',
       lines: [
-        'Seasonal fairs and weekend shows keep the brand highly visible.',
-        'Sampling-first booth strategy drives immediate product trial.',
-        'Event pages can now feed online campaigns directly.'
+        'A State Fair favorite for nearly four decades.',
+        'Free samples, full bags, and a lot of "just one more."',
+        'Find our booth and seasonal market dates each year.'
       ],
-      cta: 'Explore Events',
+      cta: 'See Where to Find Us',
       image: '/brand/state-fair.jpeg'
     },
     {
-      badge: 'Retail Ecommerce',
-      title: 'A premium online shelf for year-round growth.',
+      badge: 'Shop By The Pound',
+      title: 'Your favorites, shipped fresh.',
       lines: [
-        'Product storytelling, bundles, and pairings increase AOV.',
-        'Newsletter + campaign hooks support seasonal promotions.',
-        'Fast filters and category pages reduce browsing friction.'
+        'Roasted nuts, trail mixes, and chocolates by the pound.',
+        'Small-batch and made to order — never stale.',
+        '1, 2, and 3 lb bags for snacking or sharing.'
       ],
-      cta: 'Shop By The Pound',
+      cta: 'Shop The Treats',
       image: '/brand/retail-honey-almonds.jpg'
     },
     {
       badge: 'Corporate Gifting',
-      title: 'Highest-revenue path designed for enterprise speed.',
+      title: 'Gifts your clients actually remember.',
       lines: [
-        'Guided engraving + recipient upload in one workflow.',
-        'Draft save and internal approvals built-in.',
-        'Direct-to-recipient fulfillment as a premium service.'
+        'Custom laser-engraved boxes, tins, and canisters.',
+        'Filled with the same treats we are famous for.',
+        'Shipped direct to every name on your list.'
       ],
-      cta: 'Start Corporate Order',
+      cta: 'Explore Corporate Gifts',
       image: '/brand/corp-containers.jpg'
     }
   ],
   [
     {
       badge: 'Events + Dates',
-      title: 'Upcoming retail events and booth details.',
+      title: 'Where to find us this season.',
       lines: [
         'Minnesota State Fair: Aug 22 - Sep 2',
         'Twin Cities Holiday Market: Nov 14 - Nov 16',
-        'Corporate Sampling Week: Oct 6 - Oct 10',
-        'All event pages include map links and featured products.'
+        'More markets added through the fall.'
       ],
       cta: 'View Calendar',
       image: '/brand/state-fair.jpeg'
     },
     {
-      badge: 'Top Retail SKUs',
-      title: 'Hero products with photos and conversion-ready copy.',
+      badge: 'Best Sellers',
+      title: 'Crowd favorites, year after year.',
       lines: [
-        'Secret Peanuts (Butter Toffee) - signature favorite',
-        'Cranberry Trail Mix - sweet + tart seasonal balance',
-        'Pecan Pralines - premium gift-forward indulgence',
-        'Chocolate Almonds - classic high-margin staple'
+        'Secret Peanuts (Butter Toffee) — our signature.',
+        'Cranberry Trail Mix — sweet-tart and snackable.',
+        'Pecan Pralines — a little indulgence.',
+        'Chocolate Covered Almonds — a timeless classic.'
       ],
-      cta: 'Browse Best Sellers',
+      cta: 'Shop Best Sellers',
       image: '/brand/retail-cran-trailmix.jpg'
     },
     {
-      badge: 'Corporate Workflow',
-      title: 'How enterprise buyers move from idea to shipped gifts.',
+      badge: 'Corporate, Simplified',
+      title: 'From your logo to their doorstep.',
       lines: [
-        '1. Select container + add logo/message',
-        '2. Validate artwork + request cleanup',
-        '3. Upload recipients via CSV/XLSX/Sheets',
-        '4. Approve and track production-to-shipping status',
-        'Example clients: Banks, contractors, clinics, manufacturers'
+        '1. Pick a container and add your logo.',
+        '2. Choose the nuts, mixes, and chocolates.',
+        '3. Upload your recipient list.',
+        '4. We engrave, pack, and ship it all.'
       ],
-      cta: 'See Workflow',
+      cta: 'Start a Corporate Order',
       image: '/brand/corp-tins-v3.jpg'
     }
   ]
@@ -242,18 +240,19 @@ export default function HomePage() {
         <section className="hero-shell" data-reveal>
           <div className="hero-copy-column">
             <img className="logo-lockup" src="/brand/logo-main.png" alt="Simply Nuts and More" />
-            <p className="eyebrow">Animated Hero Prototype</p>
-            <h1>High-power laser engraving, center stage.</h1>
+            <p className="eyebrow">Family-crafted in Minnesota since 1987</p>
+            <h1>Freshly roasted nuts, mixes &amp; chocolates — the good stuff, by the pound.</h1>
             <p>
-              Cartoon-styled material, raster laser passes, sparks, smoke, and a progressive burn reveal
-              of your main logo with Chippy.
+              Small-batch roasted and hand-mixed in Chanhassen, Minnesota, then shipped fresh to your door.
+              From buttery Jumbo Cashews to our famous Secret Peanuts, every bag is made the way we'd want
+              it ourselves. (And come the holidays, we'll laser-engrave gifts for your whole client list.)
             </p>
             <div className="cta-row">
               <a className="btn btn-primary" href={SHOP_URL} aria-label="Shop our nuts, trail mixes and chocolates">
                 Shop Our Treats
               </a>
-              <button className="btn btn-secondary" type="button" onClick={() => navigate('/contact')} aria-label="Start a corporate gift order">
-                Start Corporate Order
+              <button className="btn btn-secondary" type="button" onClick={() => navigate('/contact')} aria-label="Learn about corporate gifting">
+                Corporate Gifting
               </button>
             </div>
           </div>
@@ -352,10 +351,10 @@ export default function HomePage() {
 
         <section className="locked-section" ref={stickySectionRef}>
           <div className={`locked-sticky phase-${stickyPhase}`} data-reveal>
-            <h2>Retail + Ecommerce + Corporate, one cohesive system.</h2>
+            <h2>Three ways to enjoy Simply Nuts.</h2>
             <p className="locked-subtitle">
-              This frame is pinned while content transitions. Scroll through this zone to see the second
-              data state replace the first.
+              Snack at home, catch us at the fair, or gift your whole client list. Keep scrolling for
+              what's in season.
             </p>
 
             <div className="locked-grid">
@@ -387,25 +386,25 @@ export default function HomePage() {
 
         <section className="tool-preview" data-reveal>
           <div className="tool-preview-copy">
-            <p className="eyebrow">Next Section</p>
-            <h2>Corporate Gift Design Studio</h2>
+            <p className="eyebrow">Corporate Gifting</p>
+            <h2>Your logo, laser-engraved.</h2>
             <p>
-              After the locked narrative section, the page scrolls into the full builder workflow: artwork
-              upload, engraving proof, recipient import, and order approval.
+              For holiday and client gifts, we engrave your logo onto premium boxes, tins, and canisters,
+              fill them with the treats you choose, and ship them straight to your recipients.
             </p>
           </div>
           <div className="tool-preview-cards">
             <article>
               <h3>Step 1</h3>
-              <p>Choose container and add logo + message</p>
+              <p>Choose a container and add your logo</p>
             </article>
             <article>
               <h3>Step 2</h3>
-              <p>Validate design quality and request cleanup</p>
+              <p>Pick the nuts, mixes, and chocolates</p>
             </article>
             <article>
               <h3>Step 3</h3>
-              <p>Upload recipients and finalize shipment</p>
+              <p>Upload recipients and we ship it all</p>
             </article>
           </div>
         </section>

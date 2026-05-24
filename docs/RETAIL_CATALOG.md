@@ -4,7 +4,7 @@
 > These are the products + prices for the new retail Shopify store (TASK-013).
 > All items sold in **1 lb, 2 lb, and 3 lb** bags. Vendor: Simply Nuts & More.
 >
-> ✅ **All 18 products fully priced.** 14 were confirmed from the live site; the remaining 4
+> ✅ **All 19 products fully priced.** 14 were confirmed from the live site; the remaining 4
 > (Honey Roasted Cashews, Roasted Almonds, Chocolate Covered Almonds, Chocolate Covered Cashews)
 > were set by the owner to **1 lb $19.99 / 2 lb $34.99 / 3 lb $49.98**. Note: this raised the two
 > chocolate 1 lb prices from $18.99 → $19.99.
@@ -34,7 +34,7 @@
 | Sesame Mix | $14.99 | $25.99 | $36.99 | Great as a snack or on salads! A mix of sesame sticks, cheddar sesame sticks, and roasted and salted peanuts, cashews, almonds, pumpkin seeds and sunflower seeds. |
 | Ultra Berry | $16.99 | $31.99 | $46.99 | Northern Wisconsin cranberries, Michigan blueberries, and Washington sour cherries make up this one-of-a-kind treat. Buy extra for baking! |
 
-## Chocolates (5)
+## Chocolates (6)
 
 | Product | 1 lb | 2 lb | 3 lb | Description |
 |---------|------|------|------|-------------|
@@ -43,6 +43,7 @@
 | Chocolate Double Dipped Peanuts | $14.99 | $25.99 | $36.99 | Fresh jumbo Virginia peanuts are drowned in a thick creamy milk chocolate and then repeated, for a chocolate lover's dream. |
 | Malted Milk Balls | $14.99 | $25.99 | $36.99 | Crisp & crunchy malted milk balls enrobed in our creamy milk chocolate. Always the first to go at any gathering. |
 | Secret Peanuts Surprise | $14.99 | $25.99 | $36.99 | The ultimate blend of indulgence: Secret Toffee Peanuts paired perfectly with Double Dipped Chocolate Peanuts. A harmonious dance of rich buttery toffee and luscious chocolate — perfect for snacking or sharing. |
+| Dark Chocolate Almonds | $19.99 | $34.99 | $49.99 | Premium California almonds enrobed in rich, smooth dark chocolate. A little bittersweet, a lot irresistible. *(new product)* |
 
 ---
 
@@ -56,7 +57,7 @@ These tiers are consistent across the confirmed products (for reference):
 | $19.99 | $34.99 | $49.99 | All eight $19.99 products — standardized per owner |
 
 ## Pricing — finalized ✅
-All 18 products have complete 1/2/3 lb pricing. The 4 previously-unconfirmed items were set by
+All 19 products have complete 1/2/3 lb pricing. The 4 previously-unconfirmed items were set by
 the owner to $19.99 / $34.99 / $49.98. Remaining owner inputs are product photos (TASK-011) and
 allergen statements.
 

@@ -36,7 +36,7 @@ prototype's mock cart/checkout is removed for retail — Shopify owns the cart.
 |----|--------|-------|-------|---------|--------|
 | ~~TASK-001~~ | ✅ **DONE** | Dev | Phase 1 backend/DB/test/CI foundation committed & pushed | - | - |
 | ~~TASK-002~~ | ✅ **DONE** | Dev | Repo hygiene — remove iCloud sync conflict artifacts | - | - |
-| ~~TASK-010~~ | ✅ **DONE** | 🔵 Owner | Retail pricing finalized for all 18 products (1/2/3 lb) | - | TASK-013 |
+| ~~TASK-010~~ | ✅ **DONE** | 🔵 Owner | Retail pricing finalized for all 19 products (1/2/3 lb) | - | TASK-013 |
 | TASK-011 | 📋 TODO | 🔵 Owner | Create product photography for each nut & mix | - | TASK-013 |
 | TASK-012 | 📋 TODO | 🔵 Owner | Confirm Shopify plan + connect Shopify Payments (banking) | - | TASK-020 |
 | TASK-013 | 🔄 **IN PROGRESS** | Dev+Owner | Build full retail catalog — data scraped, import CSV drafted | TASK-010, TASK-011 | TASK-014 |
@@ -85,9 +85,10 @@ Removed iCloud sync-conflict duplicates (" 2"/" 3" files) including artifacts in
 
 ### ~~TASK-010~~: Finalize retail pricing 🔵 (✅ DONE — Owner)
 **Scraped from live simplynutsandmore.com (2026-05-23) → `docs/RETAIL_CATALOG.md`.**
-All 18 products fully priced (1 / 2 / 3 lb bags).
+All 19 products fully priced (1 / 2 / 3 lb bags).
 - [x] Package sizes confirmed: 1 lb / 2 lb / 3 lb bags
-- [x] Per-SKU pricing for all 18 (14 from site; 4 set by owner to $19.99/$34.99/$49.98)
+- [x] Per-SKU pricing for all 19 (14 from site; 4 set by owner; Dark Chocolate Almonds added at $19.99/$34.99/$49.99)
+- [x] Bulk tiers standardized: $14.99→$25.99/$36.99 · $16.99→$31.99/$46.99 · $19.99→$34.99/$49.99
 - [x] Note: the 2 chocolate items' 1 lb price raised $18.99 → $19.99 per owner
 - [ ] (Still needed) Confirm allergen statements per product
 
@@ -105,8 +106,8 @@ Candied Pecans, Macadamia, Pistachios, Walnuts, Premium Mix, Trail Mix — plus 
 
 ### TASK-013: Build retail product catalog in Shopify (🔄 IN PROGRESS — Dev+Owner)
 Depends on TASK-010 + TASK-011.
-- [x] Catalog data captured → `docs/RETAIL_CATALOG.md` (18 products, descriptions, prices)
-- [x] Shopify import file complete → `db/seed/shopify-products-import.csv` — all 18 products × 3 size variants, SKUs, weights, collections. Sold-out items (Honey Roasted Cashews, Chocolate Covered Almonds) set to `draft`.
+- [x] Catalog data captured → `docs/RETAIL_CATALOG.md` (19 products, descriptions, prices)
+- [x] Shopify import file complete → `db/seed/shopify-products-import.csv` — all 19 products × 3 size variants, SKUs, weights, collections. Sold-out items (Honey Roasted Cashews, Chocolate Covered Almonds) set to `draft`.
 - [ ] Owner: supply product photos (TASK-011) → add to `Image Src` / upload in admin
 - [ ] Import CSV into Shopify; organize Collections (Nuts · Trail Mixes · Chocolates · Best Sellers)
 - [ ] Add allergen/ingredient metafields (theme-independent — see TASK-014)
