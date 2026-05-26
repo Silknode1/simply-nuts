@@ -23,6 +23,17 @@ domain; the Shopify store lives at `shop.simplynutsandmore.com` and powers all t
 landing page links into Shopify (collection/product links, or embedded Shopify Buy Buttons). The
 prototype's mock cart/checkout is removed for retail — Shopify owns the cart.
 
+**Two-codebase split (monorepo):**
+- **`apps/prototype-web`** = the **retail + landing** codebase: the shared marketing homepage
+  (hero animation) + About/Contact. Pure marketing — "Shop" → Shopify, "Corporate Gifting" → the
+  corporate site. No cart/checkout/customizer here.
+- **`apps/storefront-hydrogen`** = the **corporate gifting** codebase (Hydrogen). The old corporate
+  React prototype now lives under `apps/storefront-hydrogen/_reference-prototype/` (frozen reference,
+  not built) to inform the real customizer build.
+- **`packages/core` · `types` · `ui`** = shared business logic/types/UI used by both.
+- The landing page is the **shared front door** for both sides and is being redesigned for
+  beautiful UI/UX + easy navigation (hero animation preserved).
+
 ---
 
 ## Status Legend
