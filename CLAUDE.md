@@ -14,29 +14,29 @@ This is the next-generation monorepo for Simply Nuts & More, targeting a phased 
 - **Production target:** Shopify Hydrogen (Remix)
 - **Shared packages:** TypeScript-first, framework-agnostic
 
+## Two-codebase split (monorepo)
+- **`apps/prototype-web`** = the RETAIL + LANDING codebase. The shared marketing front door
+  (deployed to Netlify at the root domain). Marketing only — retail commerce runs on Shopify;
+  "Shop" CTAs link out via `src/config.ts` (`SHOP_URL` / `SHOP_COLLECTIONS`). No cart/checkout here.
+- **`apps/storefront-hydrogen`** = the CORPORATE GIFTING codebase (Shopify Hydrogen). The old
+  corporate React prototype lives under `_reference-prototype/` (frozen, NOT built) for porting.
+- **`packages/core · types · ui`** = shared business logic / types / UI used by both.
+
 ## Directory Structure
 ```
 apps/
-  prototype-web/          — React + Vite working prototype (ACTIVE — single consolidated codebase)
+  prototype-web/          — Retail marketing landing page (React + Vite). Shared front door.
     src/
-      App.tsx             — Router + layout shell (Navbar, CartDrawer, Footer, Routes)
+      App.tsx             — Router + layout shell (Navbar, Footer; routes: / /about /contact)
       main.tsx            — Entry point
-      styles.css          — Landing page CSS + Tailwind v4 @theme tokens (wood/gold/cream/burn)
-      store/
-        cartStore.ts      — Zustand cart state
-        designStore.ts    — Zustand customizer state (container, size, nuts, logo)
-      components/
-        Navbar.tsx        — Top nav with cart badge + mobile menu
-        Footer.tsx        — Footer with links and contact info
-        CartDrawer.tsx    — Slide-out cart drawer
+      config.ts           — SHOP_URL + SHOP_COLLECTIONS (Shopify handoff links)
+      styles.css          — Landing CSS + Tailwind v4 @theme tokens (wood/gold/cream/burn)
+      components/         — Navbar, Footer, HeroSection, LaserHeroAnimation, EmailCapture, etc.
       pages/
-        HomePage.tsx      — Cinematic landing page with animated laser engraving hero
-        ProductsPage.tsx  — Product catalog (Wooden Box, Bamboo, Gift Tin) with size selector
-        CustomOrderPage.tsx — 5-step corporate gifting customizer
-        AboutPage.tsx     — Brand story, values, stats
-        ContactPage.tsx   — Quote request form
-        CheckoutPage.tsx  — Checkout flow
-  storefront-hydrogen/    — Shopify Hydrogen app (NOT YET INITIALIZED)
+        HomePage.tsx      — Retail-forward landing with animated laser-engraving hero
+        AboutPage.tsx     — Brand story / heritage
+        ContactPage.tsx   — Corporate gifting inquiry form
+  storefront-hydrogen/    — Corporate gifting (Hydrogen). _reference-prototype/ = frozen corp prototype
 
 packages/
   types/                  — Shared domain types (DraftOrder, Product, etc.)

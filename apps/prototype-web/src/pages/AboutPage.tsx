@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Heart, Leaf, Zap, Users } from 'lucide-react'
+import { Heart, Leaf, Award, Users } from 'lucide-react'
+import { SHOP_URL } from '../config'
 
 export default function AboutPage() {
   return (
-    <div className="pt-20 pb-16 min-h-screen bg-cream">
+    <div className="pt-16 pb-16 min-h-screen bg-cream">
       {/* Hero */}
       <section className="bg-wood-900 text-cream py-20">
         <div className="max-w-4xl mx-auto px-4 text-center">
@@ -21,8 +22,8 @@ export default function AboutPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Simply Nuts was born from a simple idea: corporate gifts should be
-            personal, memorable, and delicious.
+            A family business roasting premium nuts, mixes, and chocolates in
+            Chanhassen, Minnesota since 1987.
           </motion.p>
         </div>
       </section>
@@ -32,28 +33,31 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="bg-wood-400 rounded-2xl h-80 flex items-center justify-center text-8xl">
-                🥜
-              </div>
+              <img
+                src="/brand/state-fair-booth.jpeg"
+                alt="Our Minnesota State Fair booth"
+                className="rounded-2xl w-full h-80 object-cover shadow-lg"
+              />
             </div>
             <div>
               <h2 className="font-display text-3xl font-bold text-wood-900 mb-4">
-                From Workshop to Your Desk
+                37 Years of Small-Batch Roasting
               </h2>
               <p className="text-wood-600 mb-4">
-                It started in a small workshop with a laser engraver and a love for
-                great food. We noticed that corporate gifts often ended up forgotten —
-                generic, impersonal, and uninspired.
+                Simply Nuts &amp; More started as a family business in 1987, and we still
+                roast and hand-mix everything in small batches right here in Chanhassen,
+                Minnesota. Nothing sits around getting stale.
               </p>
               <p className="text-wood-600 mb-4">
-                We set out to change that. By combining precision laser engraving with
-                premium, hand-selected nuts, we create gifts that recipients actually
-                love — gifts that sit on their desk, get shared with coworkers, and
-                spark real conversations about your brand.
+                If you've wandered the Minnesota State Fair, there's a good chance you've
+                followed your nose to our booth. We've been a fair favorite for nearly
+                four decades, and we still get a little giddy when someone says it's the
+                freshest nut they've ever had.
               </p>
               <p className="text-wood-600">
-                Today, we've engraved over 50,000 custom containers for companies
-                ranging from startups to Fortune 500s.
+                Today we ship our treats by the pound all across the country, and come
+                the holidays, we laser-engrave custom gift boxes for companies who want
+                to send something people actually remember.
               </p>
             </div>
           </div>
@@ -68,10 +72,10 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { icon: Heart, title: 'Craftsmanship', desc: 'Every box is inspected by hand. Every engraving is tested for precision.' },
-              { icon: Leaf, title: 'Sustainability', desc: 'Bamboo options, recyclable tins, and carbon-offset shipping.' },
-              { icon: Zap, title: 'Speed', desc: 'From order to delivery in as fast as 5 business days.' },
-              { icon: Users, title: 'Service', desc: 'Dedicated account managers for orders of 100+ units.' },
+              { icon: Heart, title: 'Family-Run', desc: 'Three generations of roasting, tasting, and bagging by hand.' },
+              { icon: Award, title: 'State Fair Famous', desc: 'A Minnesota tradition that keeps the line moving every August.' },
+              { icon: Leaf, title: 'Small-Batch Fresh', desc: 'Roasted and mixed to order so nothing ships stale.' },
+              { icon: Users, title: 'Community First', desc: 'Proudly made in Chanhassen and shipped with Minnesota care.' },
             ].map((v, i) => (
               <motion.div
                 key={v.title}
@@ -97,10 +101,10 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { num: '50K+', label: 'Gifts Engraved' },
-              { num: '2,000+', label: 'Companies Served' },
-              { num: '99%', label: 'Satisfaction Rate' },
-              { num: '5', label: 'Day Turnaround' },
+              { num: '1987', label: 'Family-Run Since' },
+              { num: '37', label: 'Years Roasting' },
+              { num: '19+', label: 'Treats By The Pound' },
+              { num: 'MN', label: 'Made in Minnesota' },
             ].map((s) => (
               <div key={s.label}>
                 <div className="font-display text-3xl font-bold text-burn">{s.num}</div>
@@ -115,17 +119,26 @@ export default function AboutPage() {
       <section className="py-16 bg-wood-900 text-cream text-center">
         <div className="max-w-3xl mx-auto px-4">
           <h2 className="font-display text-3xl font-bold mb-4">
-            Let's Create Something Special
+            Taste the Difference Fresh Makes
           </h2>
           <p className="text-wood-400 mb-8">
-            Whether it's 10 gifts or 10,000, we'll make each one perfect.
+            Shop our freshly roasted treats by the pound, or reach out about custom
+            corporate gifts for your team and clients.
           </p>
-          <Link
-            to="/contact"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-burn hover:bg-burn-light text-white font-semibold rounded-lg transition-colors no-underline"
-          >
-            Get a Corporate Quote
-          </Link>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <a
+              href={SHOP_URL}
+              className="inline-flex items-center gap-2 px-8 py-4 bg-burn hover:bg-burn-light text-white font-semibold rounded-lg transition-colors no-underline"
+            >
+              Shop Our Treats
+            </a>
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-transparent border border-wood-400 hover:border-gold-400 text-cream font-semibold rounded-lg transition-colors no-underline"
+            >
+              Corporate Gifting
+            </Link>
+          </div>
         </div>
       </section>
     </div>

@@ -4,23 +4,26 @@ import { SHOP_URL, SHOP_COLLECTIONS } from '../config'
 export default function Footer() {
   return (
     <footer className="bg-wood-950 text-wood-300 border-t border-wood-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">🥜</span>
-              <span className="font-display text-lg font-bold text-gold-400">
-                Simply Nuts
-              </span>
+            <div className="flex items-center gap-2.5 mb-4">
+              <img
+                src="/brand/logo-main.png"
+                alt=""
+                aria-hidden="true"
+                className="h-10 w-auto rounded-sm bg-cream/95 p-0.5"
+              />
+              <span className="font-display text-lg font-bold text-gold-400">Simply Nuts &amp; More</span>
             </div>
-            <p className="text-sm text-wood-400">
-              Custom laser-engraved corporate gifts filled with premium nuts.
-              Show your clients you care.
+            <p className="text-sm text-wood-400 leading-relaxed">
+              Family-crafted nuts, trail mixes, and chocolates — roasted in small batches in Chanhassen,
+              Minnesota since 1987. A State Fair favorite for 37 years.
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* Shop */}
           <div>
             <h4 className="font-display font-semibold text-gold-400 mb-3">Shop</h4>
             <ul className="space-y-2 text-sm list-none p-0">
@@ -45,15 +48,15 @@ export default function Footer() {
           <div>
             <h4 className="font-display font-semibold text-gold-400 mb-3">Get in Touch</h4>
             <ul className="space-y-2 text-sm list-none p-0 text-wood-400">
-              <li>hello@simplynuts.com</li>
-              <li>(555) 123-NUTS</li>
-              <li>Mon-Fri 9am-5pm EST</li>
+              <li>Chanhassen, Minnesota</li>
+              <li><a href="tel:18884496887" className="hover:text-gold-300 text-wood-400 no-underline">1-888-449-6887</a></li>
+              <li>Family-run since 1987</li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-wood-800 text-center text-xs text-wood-500">
-          &copy; {new Date().getFullYear()} Simply Nuts. All rights reserved. Made with care for your corporate gifting needs.
+        <div className="mt-12 pt-6 border-t border-wood-800 text-center text-xs text-wood-500">
+          &copy; {new Date().getFullYear()} Simply Nuts &amp; More. Family-crafted in Minnesota since 1987.
         </div>
       </div>
     </footer>

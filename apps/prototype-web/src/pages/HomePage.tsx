@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {SHOP_URL} from '../config';
+import {SHOP_URL, SHOP_COLLECTIONS} from '../config';
 
 type ContainerKey = 'wood' | 'bamboo' | 'tin';
 
@@ -9,102 +9,91 @@ type ContainerPreset = {
   label: string;
 };
 
-type CardContent = {
-  badge: string;
-  cta: string;
-  image: string;
-  lines: string[];
-  title: string;
-};
-
 const containers: Record<ContainerKey, ContainerPreset> = {
   wood: {label: 'Wooden Box', alt: 'Cartoon-styled wooden gift box top'},
   bamboo: {label: 'Bamboo Container', alt: 'Cartoon-styled bamboo container top'},
   tin: {label: 'Gift Tin', alt: 'Cartoon-styled gift tin top'}
 };
 
-const stickyPhases: CardContent[][] = [
-  [
-    {
-      badge: 'Minnesota State Fair',
-      title: 'Catch us where Minnesota gathers.',
-      lines: [
-        'A State Fair favorite for nearly four decades.',
-        'Free samples, full bags, and a lot of "just one more."',
-        'Find our booth and seasonal market dates each year.'
-      ],
-      cta: 'See Where to Find Us',
-      image: '/brand/state-fair.jpeg'
-    },
-    {
-      badge: 'Shop By The Pound',
-      title: 'Your favorites, shipped fresh.',
-      lines: [
-        'Roasted nuts, trail mixes, and chocolates by the pound.',
-        'Small-batch and made to order — never stale.',
-        '1, 2, and 3 lb bags for snacking or sharing.'
-      ],
-      cta: 'Shop The Treats',
-      image: '/brand/retail-honey-almonds.jpg'
-    },
-    {
-      badge: 'Corporate Gifting',
-      title: 'Gifts your clients actually remember.',
-      lines: [
-        'Custom laser-engraved boxes, tins, and canisters.',
-        'Filled with the same treats we are famous for.',
-        'Shipped direct to every name on your list.'
-      ],
-      cta: 'Explore Corporate Gifts',
-      image: '/brand/corp-containers.jpg'
-    }
-  ],
-  [
-    {
-      badge: 'Events + Dates',
-      title: 'Where to find us this season.',
-      lines: [
-        'Minnesota State Fair: Aug 22 - Sep 2',
-        'Twin Cities Holiday Market: Nov 14 - Nov 16',
-        'More markets added through the fall.'
-      ],
-      cta: 'View Calendar',
-      image: '/brand/state-fair.jpeg'
-    },
-    {
-      badge: 'Best Sellers',
-      title: 'Crowd favorites, year after year.',
-      lines: [
-        'Secret Peanuts (Butter Toffee) — our signature.',
-        'Cranberry Trail Mix — sweet-tart and snackable.',
-        'Pecan Pralines — a little indulgence.',
-        'Chocolate Covered Almonds — a timeless classic.'
-      ],
-      cta: 'Shop Best Sellers',
-      image: '/brand/retail-cran-trailmix.jpg'
-    },
-    {
-      badge: 'Corporate, Simplified',
-      title: 'From your logo to their doorstep.',
-      lines: [
-        '1. Pick a container and add your logo.',
-        '2. Choose the nuts, mixes, and chocolates.',
-        '3. Upload your recipient list.',
-        '4. We engrave, pack, and ship it all.'
-      ],
-      cta: 'Start a Corporate Order',
-      image: '/brand/corp-tins-v3.jpg'
-    }
-  ]
+const bestSellers = [
+  {
+    title: 'Secret Peanuts (Butter Toffee)',
+    blurb: 'Our signature. Crunchy, buttery, impossible to put down.',
+    image: '/brand/secret-peanuts.jpg',
+    href: SHOP_COLLECTIONS.nuts
+  },
+  {
+    title: 'Jumbo Cashews',
+    blurb: 'Big, buttery, roasted to order — never stale.',
+    image: '/brand/cashews.jpg',
+    href: SHOP_COLLECTIONS.nuts
+  },
+  {
+    title: 'Cranberry Trail Mix',
+    blurb: 'Sweet-tart and endlessly snackable.',
+    image: '/brand/cranberry-trail-mix.jpg',
+    href: SHOP_COLLECTIONS.trailMixes
+  },
+  {
+    title: 'Pecan Pralines',
+    blurb: 'A little Southern indulgence, made up North.',
+    image: '/brand/pecan-pralines.jpg',
+    href: SHOP_COLLECTIONS.nuts
+  },
+  {
+    title: 'Dark Chocolate Almonds',
+    blurb: 'A timeless classic in every handful.',
+    image: '/brand/dark-chocolate-almonds.jpg',
+    href: SHOP_COLLECTIONS.chocolates
+  },
+  {
+    title: 'Ultra Berry Mix',
+    blurb: 'Berries, nuts, and a touch of chocolate.',
+    image: '/brand/ultra-berry.jpg',
+    href: SHOP_COLLECTIONS.trailMixes
+  }
 ];
 
-const productHighlights = [
-  {title: 'Secret Peanuts (Butter Toffee)', image: '/brand/secret-peanuts.jpg'},
-  {title: 'Jumbo Cashews', image: '/brand/cashews.jpg'},
-  {title: 'Cranberry Trail Mix', image: '/brand/cranberry-trail-mix.jpg'},
-  {title: 'Pecan Pralines', image: '/brand/pecan-pralines.jpg'},
-  {title: 'Dark Chocolate Almonds', image: '/brand/dark-chocolate-almonds.jpg'},
-  {title: 'Ultra Berry', image: '/brand/ultra-berry.jpg'}
+const collections = [
+  {
+    label: 'Nuts',
+    blurb: 'Roasted in small batches — cashews, almonds, pistachios & more.',
+    image: '/brand/roasted-almonds.jpg',
+    href: SHOP_COLLECTIONS.nuts
+  },
+  {
+    label: 'Trail Mixes',
+    blurb: 'Hand-mixed blends for the trail, the desk, or the couch.',
+    image: '/brand/imperial-mix.jpg',
+    href: SHOP_COLLECTIONS.trailMixes
+  },
+  {
+    label: 'Chocolates',
+    blurb: 'Chocolate-covered everything, from almonds to malt balls.',
+    image: '/brand/chocolate-cashews.jpg',
+    href: SHOP_COLLECTIONS.chocolates
+  }
+];
+
+const reviews = [
+  {
+    quote:
+      "We've been buying their Secret Peanuts at the State Fair for years. Now I order by the pound all winter long.",
+    name: 'Karen M.',
+    detail: 'Eden Prairie, MN'
+  },
+  {
+    quote:
+      'The freshest nuts I have ever had shipped. You can taste that they were just roasted.',
+    name: 'Dev P.',
+    detail: 'Repeat customer'
+  },
+  {
+    quote:
+      'Sent the engraved gift boxes to our whole sales team. Everyone asked where they came from.',
+    name: 'Lindsay R.',
+    detail: 'Office Manager'
+  }
 ];
 
 function useRevealObserver() {
@@ -141,11 +130,12 @@ export default function HomePage() {
   const [laserProgress, setLaserProgress] = useState(0);
   const [isBurning, setIsBurning] = useState(false);
   const [hasEngraved, setHasEngraved] = useState(false);
-  const [stickyPhase, setStickyPhase] = useState(0);
+
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
 
   const animationFrameRef = useRef<number | undefined>(undefined);
   const burnStartRef = useRef(0);
-  const stickySectionRef = useRef<HTMLElement | null>(null);
 
   const rows = 24;
   const progressByRows = laserProgress * rows;
@@ -207,28 +197,12 @@ export default function HomePage() {
     return () => clearTimeout(timeout);
   }, [container, includeChippy]);
 
-  useEffect(() => {
-    const updateStickyProgress = () => {
-      if (!stickySectionRef.current) return;
-
-      const rect = stickySectionRef.current.getBoundingClientRect();
-      const scrollable = rect.height - window.innerHeight;
-      if (scrollable <= 0) return;
-
-      const progress = clamp(-rect.top / scrollable, 0, 1);
-      const nextPhase = progress < 0.52 ? 0 : 1;
-      setStickyPhase((current) => (current === nextPhase ? current : nextPhase));
-    };
-
-    updateStickyProgress();
-    window.addEventListener('scroll', updateStickyProgress, {passive: true});
-    window.addEventListener('resize', updateStickyProgress);
-
-    return () => {
-      window.removeEventListener('scroll', updateStickyProgress);
-      window.removeEventListener('resize', updateStickyProgress);
-    };
-  }, []);
+  const handleSubscribe = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (email.trim()) {
+      setSubscribed(true);
+    }
+  };
 
   return (
     <div className="page-shell">
@@ -239,6 +213,7 @@ export default function HomePage() {
       </header>
 
       <main>
+        {/* ── Hero (laser engraving centerpiece) ── */}
         <section className="hero-shell" data-reveal>
           <div className="hero-copy-column">
             <img className="logo-lockup" src="/brand/logo-main.png" alt="Simply Nuts and More" />
@@ -253,7 +228,12 @@ export default function HomePage() {
               <a className="btn btn-primary" href={SHOP_URL} aria-label="Shop our nuts, trail mixes and chocolates">
                 Shop Our Treats
               </a>
-              <button className="btn btn-secondary" type="button" onClick={() => navigate('/contact')} aria-label="Learn about corporate gifting">
+              <button
+                className="btn btn-secondary"
+                type="button"
+                onClick={() => navigate('/contact')}
+                aria-label="Learn about corporate gifting"
+              >
                 Corporate Gifting
               </button>
             </div>
@@ -310,7 +290,136 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="studio-controls" data-reveal aria-label="Interactive customizer controls">
+        {/* ── Trust strip ── */}
+        <section className="trust-strip" data-reveal aria-label="Why shop with us">
+          <div><strong>37 Years</strong><span>Family-run since 1987</span></div>
+          <div><strong>State Fair Famous</strong><span>A Minnesota tradition</span></div>
+          <div><strong>Roasted to Order</strong><span>Small-batch, never stale</span></div>
+          <div><strong>Shipped Fresh</strong><span>From Chanhassen, MN</span></div>
+        </section>
+
+        {/* ── Best Sellers ── */}
+        <section id="best-sellers" className="section-block" data-reveal aria-labelledby="best-sellers-heading">
+          <div className="section-head">
+            <p className="eyebrow">Crowd favorites</p>
+            <h2 id="best-sellers-heading">Best-sellers, year after year</h2>
+            <p className="section-sub">
+              The treats our customers keep coming back for — roasted, mixed, and dipped in small batches,
+              then shipped fresh by the pound.
+            </p>
+          </div>
+          <div className="featured-grid">
+            {bestSellers.map((item) => (
+              <a key={item.title} className="featured-card" href={item.href}>
+                <img src={item.image} alt={item.title} loading="lazy" />
+                <div className="featured-card-body">
+                  <strong>{item.title}</strong>
+                  <span>{item.blurb}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+          <div className="section-cta">
+            <a className="btn btn-primary" href={SHOP_URL}>Shop All Treats</a>
+          </div>
+        </section>
+
+        {/* ── Shop by collection ── */}
+        <section className="section-block" data-reveal aria-labelledby="collections-heading">
+          <div className="section-head">
+            <p className="eyebrow">Shop by category</p>
+            <h2 id="collections-heading">Find your flavor</h2>
+          </div>
+          <div className="collection-grid">
+            {collections.map((c) => (
+              <a key={c.label} className="collection-card" href={c.href}>
+                <div className="collection-media">
+                  <img src={c.image} alt={c.label} loading="lazy" />
+                </div>
+                <div className="collection-body">
+                  <h3>{c.label}</h3>
+                  <p>{c.blurb}</p>
+                  <span className="collection-link">Shop {c.label} &rarr;</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Heritage ── */}
+        <section id="heritage" className="heritage" data-reveal aria-labelledby="heritage-heading">
+          <div className="heritage-media">
+            <img src="/brand/state-fair-booth.jpeg" alt="Our Minnesota State Fair booth" loading="lazy" />
+            <img className="heritage-media-secondary" src="/brand/community-delivery.jpg" alt="Hand-delivering fresh nuts to the community" loading="lazy" />
+          </div>
+          <div className="heritage-copy">
+            <p className="eyebrow">Our story</p>
+            <h2 id="heritage-heading">37 years of family, roasting, and "just one more."</h2>
+            <p>
+              Simply Nuts &amp; More started as a family business in 1987, and we still roast and mix
+              everything in small batches right here in Chanhassen, Minnesota. If you've wandered the
+              Minnesota State Fair, there's a good chance you've followed your nose to our booth — we've
+              been a fair favorite for nearly four decades.
+            </p>
+            <p>
+              We're not a faceless brand. We're the folks who taste every batch, fill every bag, and still
+              get excited when someone says it's the freshest nut they've ever had. (Chippy, our resident
+              squirrel, takes full credit.)
+            </p>
+            <div className="cta-row">
+              <button className="btn btn-secondary" type="button" onClick={() => navigate('/about')}>
+                Read Our Story
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Social proof ── */}
+        <section className="section-block" data-reveal aria-labelledby="reviews-heading">
+          <div className="section-head">
+            <p className="eyebrow">From our regulars</p>
+            <h2 id="reviews-heading">Loved by Minnesotans (and beyond)</h2>
+          </div>
+          <div className="review-grid">
+            {reviews.map((r) => (
+              <figure key={r.name} className="review-card">
+                <blockquote>&ldquo;{r.quote}&rdquo;</blockquote>
+                <figcaption>
+                  <strong>{r.name}</strong>
+                  <span>{r.detail}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Corporate gifting (secondary) ── */}
+        <section className="corp-band" data-reveal aria-labelledby="corp-heading">
+          <div className="corp-media">
+            <img src="/brand/corp-containers.jpg" alt="Laser-engraved corporate gift containers filled with treats" loading="lazy" />
+          </div>
+          <div className="corp-copy">
+            <p className="eyebrow eyebrow-light">Corporate gifting</p>
+            <h2 id="corp-heading">Your logo, laser-engraved on a gift they'll actually remember.</h2>
+            <p>
+              For client and team gifts, we engrave your logo onto premium boxes, tins, and canisters, fill
+              them with the treats you choose, and ship them straight to every name on your list.
+            </p>
+            <ol className="corp-steps">
+              <li><span>1</span> Pick a container and add your logo</li>
+              <li><span>2</span> Choose the nuts, mixes &amp; chocolates</li>
+              <li><span>3</span> Send your list — we engrave, pack &amp; ship</li>
+            </ol>
+            <div className="cta-row">
+              <button className="btn btn-light" type="button" onClick={() => navigate('/contact')}>
+                Explore Corporate Gifting
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Interactive engraving customizer (keeps the centerpiece playful) ── */}
+        <section className="studio-controls" data-reveal aria-label="Preview the engraver">
           <div className="control-group">
             <p>Container Material</p>
             <div className="pill-row">
@@ -351,78 +460,32 @@ export default function HomePage() {
           </button>
         </section>
 
-        <section className="locked-section" ref={stickySectionRef}>
-          <div className={`locked-sticky phase-${stickyPhase}`} data-reveal>
-            <h2>Three ways to enjoy Simply Nuts.</h2>
-            <p className="locked-subtitle">
-              Snack at home, catch us at the fair, or gift your whole client list. Keep scrolling for
-              what's in season.
+        {/* ── Newsletter capture ── */}
+        <section className="newsletter" data-reveal aria-labelledby="newsletter-heading">
+          <img className="newsletter-chippy" src="/brand/chippy.png" alt="" aria-hidden="true" />
+          <h2 id="newsletter-heading">Get the fresh batch news</h2>
+          <p>
+            New roasts, seasonal mixes, fair dates, and the occasional Chippy-approved deal. No spam, just
+            the good stuff.
+          </p>
+          {subscribed ? (
+            <p className="newsletter-success" role="status">
+              You're in! Watch your inbox for fresh-batch news.
             </p>
-
-            <div className="locked-grid">
-              {[0, 1, 2].map((column) => (
-                <article key={column} className="locked-card">
-                  {[0, 1].map((phase) => {
-                    const content = stickyPhases[phase][column];
-                    return (
-                      <div key={phase} className={`locked-pane phase-${phase}`}>
-                        <img src={content.image} alt={content.title} loading="lazy" />
-                        <p className="locked-badge">{content.badge}</p>
-                        <h3>{content.title}</h3>
-                        <ul>
-                          {content.lines.map((line) => (
-                            <li key={line}>{line}</li>
-                          ))}
-                        </ul>
-                        <button className="btn btn-secondary" type="button">
-                          {content.cta}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="tool-preview" data-reveal>
-          <div className="tool-preview-copy">
-            <p className="eyebrow">Corporate Gifting</p>
-            <h2>Your logo, laser-engraved.</h2>
-            <p>
-              For holiday and client gifts, we engrave your logo onto premium boxes, tins, and canisters,
-              fill them with the treats you choose, and ship them straight to your recipients.
-            </p>
-          </div>
-          <div className="tool-preview-cards">
-            <article>
-              <h3>Step 1</h3>
-              <p>Choose a container and add your logo</p>
-            </article>
-            <article>
-              <h3>Step 2</h3>
-              <p>Pick the nuts, mixes, and chocolates</p>
-            </article>
-            <article>
-              <h3>Step 3</h3>
-              <p>Upload recipients and we ship it all</p>
-            </article>
-          </div>
-        </section>
-
-        <section className="catalog" data-reveal aria-label="Featured treats">
-          <h2>Shop Our Freshly Roasted Treats</h2>
-          <p>Premium nuts, trail mixes, and chocolates — by the pound, shipped fresh from Minnesota.</p>
-          <div className="featured-grid">
-            {productHighlights.map((item) => (
-              <a key={item.title} className="featured-card" href={SHOP_URL}>
-                <img src={item.image} alt={item.title} loading="lazy" />
-                <strong>{item.title}</strong>
-              </a>
-            ))}
-          </div>
-          <a className="btn btn-primary featured-shop-all" href={SHOP_URL}>Shop All Treats</a>
+          ) : (
+            <form className="newsletter-form" onSubmit={handleSubscribe}>
+              <label className="sr-only" htmlFor="newsletter-email">Email address</label>
+              <input
+                id="newsletter-email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+              <button className="btn btn-primary" type="submit">Sign Me Up</button>
+            </form>
+          )}
         </section>
       </main>
     </div>
