@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simply Nuts — Floating Island Hero (preview)</title>
+<style>
+  :root{ --cream:#f5efe3; --wood:#6b4a2b; --gold:#c8962a; --burn:#7a3b18; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:auto; }
+  body{ background:#d9d4c7; color:#3a2c1c; font-family:"Segoe UI",system-ui,sans-serif; }
+
+  /* Scroll room: the pinned stage scrubs across this height */
+  .scroller{ height:460vh; position:relative; }
+
+  .stage{
+    position:sticky; top:0; height:100vh; width:100%;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+    background:radial-gradient(120% 90% at 60% 30%, #efe9dc 0%, #ddd7c9 55%, #cfc8b8 100%);
+  }
+
+  /* 16:9 island stage — everything is positioned in % of this box */
+  .island-wrap{ position:relative; width:min(96vw, 170vh); aspect-ratio:16/9; will-change:transform; }
+  .island-base{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; user-select:none; -webkit-user-drag:none; }
+
+  .tree{ position:absolute; will-change:transform, opacity;
+    /* feather edges so each plane blends into the island (tunable) */
+    -webkit-mask-image:radial-gradient(ellipse 93% 96% at 50% 47%, #000 76%, transparent 100%);
+            mask-image:radial-gradient(ellipse 93% 96% at 50% 47%, #000 76%, transparent 100%);
+  }
+  .tree canvas{ width:100%; height:100%; display:block; }
+
+  .hotspot{
+    position:absolute; transform:translate(-50%,-50%) scale(.7); opacity:0; pointer-events:none;
+    display:flex; align-items:center; gap:.5rem; white-space:nowrap;
+    background:rgba(31,22,12,.86); color:var(--cream);
+    padding:.5rem .85rem; border-radius:999px; font-size:clamp(11px,1.15vw,15px); font-weight:600;
+    text-decoration:none; box-shadow:0 8px 24px rgba(0,0,0,.28); border:1px solid rgba(200,150,42,.5);
+    backdrop-filter:blur(4px); transition:transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s, background .2s;
+  }
+  .hotspot.on{ opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:auto; }
+  .hotspot:hover{ background:var(--burn); }
+  .hotspot .dot{ width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 4px rgba(200,150,42,.25); }
+
+  .titles{ position:absolute; left:50%; top:12%; transform:translateX(-50%); text-align:center; z-index:5; pointer-events:none; }
+  .titles h1{ font-size:clamp(28px,5vw,64px); letter-spacing:-.02em; color:#2c2013; text-shadow:0 2px 18px rgba(255,255,255,.5); }
+  .titles p{ margin-top:.4rem; font-size:clamp(13px,1.5vw,19px); color:#5a4630; }
+
+  .hud{ position:fixed; left:0; right:0; bottom:18px; text-align:center; z-index:10; color:#5a4630; font-size:13px; letter-spacing:.12em; text-transform:uppercase; }
+  .hud .bar{ display:inline-block; width:180px; height:4px; border-radius:2px; background:rgba(90,70,48,.2); vertical-align:middle; margin-left:10px; overflow:hidden; }
+  .hud .bar span{ display:block; height:100%; width:0%; background:var(--gold); }
+  .loader{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:50; background:#d9d4c7; transition:opacity .6s; }
+  .loader.hide{ opacity:0; pointer-events:none; }
+  .loader .ring{ font-size:14px; letter-spacing:.15em; color:#6b4a2b; }
+</style>
+</head>
+<body>
+<div class="loader" id="loader"><div class="ring">GROWING THE ISLAND… <b id="pct">0%</b></div></div>
+
+<div class="scroller">
+  <div class="stage">
+    <div class="titles">
+      <h1>Grown by hand.</h1>
+      <p>Scroll to watch the harvest ripen.</p>
+    </div>
+    <div class="island-wrap" id="wrap">
+      <img class="island-base" id="base" src="./hero-island.webp" alt="Floating nut island" />
+      <!-- tree planes + hotspots injected by JS -->
+    </div>
+  </div>
+</div>
+
+<div class="hud">HARVEST <span class="bar"><span id="progbar"></span></span></div>
+
+<script>
+/* ---- data-driven manifest -------------------------------------------------
+   Positions are % of the 16:9 island stage (derived from the source crop boxes).
+   `win` is the scroll-progress window [start,end] over which the tree matures.
+   Tune left/top/w/h to nudge a plane; tune win to change the ripening order.   */
+const SHOP = "https://shop.simplynutsandmore.com";
+const NUTS = SHOP + "/collections/nuts";
+const TREES = [
+  { id:"almond",    frames:61, left:2.3,  top:0.9,  w:21.2, h:50.3, win:[0.00,0.34], shop:true,  label:"Shop Almonds",   href:NUTS },
+  { id:"peanut",    frames:61, left:4.8,  top:39.9, w:11.4, h:26.9, win:[0.05,0.40], shop:true,  label:"Shop Peanuts",   href:NUTS },
+  { id:"cashew",    frames:61, left:29.8, top:0.7,  w:21.0, h:49.9, win:[0.12,0.50], shop:true,  label:"Shop Cashews",   href:NUTS },
+  { id:"pistachio", frames:61, left:42.8, top:8.7,  w:18.3, h:43.4, win:[0.22,0.60], shop:true,  label:"Shop Pistachios",href:NUTS },
+  { id:"walnut",    frames:61, left:54.2, top:1.1,  w:21.0, h:49.9, win:[0.34,0.72], shop:true,  label:"Shop Walnuts",   href:NUTS },
+  { id:"pine",      frames:61, left:63.3, top:3.9,  w:16.5, h:39.1, win:[0.46,0.82], shop:false },
+  { id:"pecan",     frames:61, left:71.5, top:3.5,  w:20.5, h:48.6, win:[0.58,0.95], shop:true,  label:"Shop Pecans",    href:NUTS },
+];
+
+const wrap = document.getElementById("wrap");
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp  = (a,b,t)=>a+(b-a)*t;
+
+/* build plane + canvas + hotspot per tree */
+const state = TREES.map(t=>{
+  const el = document.createElement("div");
+  el.className="tree";
+  el.style.left=t.left+"%"; el.style.top=t.top+"%"; el.style.width=t.w+"%"; el.style.height=t.h+"%";
+  const cv = document.createElement("canvas"); el.appendChild(cv);
+  wrap.appendChild(el);
+  let hs=null;
+  if(t.shop){
+    hs=document.createElement("a");
+    hs.className="hotspot"; hs.href=t.href; hs.target="_blank"; hs.rel="noopener";
+    hs.innerHTML='<span class="dot"></span>'+t.label;
+    // place hotspot near the tree's fruit zone (upper-centre of the plane)
+    hs.style.left=(t.left + t.w*0.52)+"%";
+    hs.style.top =(t.top  + t.h*0.30)+"%";
+    wrap.appendChild(hs);
+  }
+  return { t, el, cv, ctx:cv.getContext("2d"), imgs:new Array(t.frames), loaded:0, cur:-1, hs };
+});
+
+/* preload all frames */
+let totalFrames = TREES.reduce((a,t)=>a+t.frames,0), done=0;
+const pctEl=document.getElementById("pct"), loader=document.getElementById("loader");
+state.forEach(s=>{
+  for(let i=0;i<s.t.frames;i++){
+    const n=String(i+1).padStart(2,"0");
+    const img=new Image();
+    img.onload=()=>{ s.imgs[i]=img; s.loaded++; done++;
+      const p=Math.round(done/totalFrames*100); pctEl.textContent=p+"%";
+      if(!s.cv.width && img.naturalWidth){ s.cv.width=img.naturalWidth; s.cv.height=img.naturalHeight; }
+      if(done===totalFrames){ loader.classList.add("hide"); draw(true); }
+    };
+    img.onerror=()=>{ done++; if(done===totalFrames){ loader.classList.add("hide"); draw(true);} };
+    img.src=`./seq/${s.t.id}/f_${n}.webp`;
+  }
+});
+
+/* scroll progress 0..1 across the scroller */
+let progress=0;
+function computeProgress(){
+  const sc=document.querySelector(".scroller");
+  const total=sc.offsetHeight - window.innerHeight;
+  progress=clamp((window.scrollY - sc.offsetTop)/total,0,1);
+  document.getElementById("progbar").style.width=(progress*100)+"%";
+}
+
+function draw(force){
+  state.forEach(s=>{
+    const [a,b]=s.t.win;
+    const local=clamp((progress-a)/(b-a),0,1);
+    const f=clamp(Math.round(local*(s.t.frames-1)),0,s.t.frames-1);
+    if((f!==s.cur||force) && s.imgs[f] && s.cv.width){
+      s.ctx.clearRect(0,0,s.cv.width,s.cv.height);
+      s.ctx.drawImage(s.imgs[f],0,0,s.cv.width,s.cv.height);
+      s.cur=f;
+    }
+    if(s.hs){ if(local>=0.88) s.hs.classList.add("on"); else s.hs.classList.remove("on"); }
+  });
+}
+
+/* gentle float + a touch of scroll parallax on the whole island */
+function frame(ts){
+  const floatY=Math.sin(ts/1400)*0.9;          // subtle bob
+  const drift = lerp(-1.5, 1.5, progress);      // slow vertical drift while scrolling
+  const scale = lerp(1.02, 1.0, progress);
+  wrap.style.transform=`translateY(${floatY+drift}%) scale(${scale})`;
+  requestAnimationFrame(frame);
+}
+
+let ticking=false;
+function onScroll(){ if(!ticking){ requestAnimationFrame(()=>{ computeProgress(); draw(false); ticking=false; }); ticking=true; } }
+window.addEventListener("scroll", onScroll, {passive:true});
+window.addEventListener("resize", ()=>{ computeProgress(); draw(true); });
+computeProgress(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

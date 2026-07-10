@@ -1,0 +1,113 @@
+/* FloatingIslandHero — scroll-scrubbed maturing island hero */
+.fih { position: relative; }
+
+.fih__stage {
+  position: sticky; top: 0; height: 100vh; width: 100%;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  background: radial-gradient(120% 90% at 60% 30%, #efe9dc 0%, #ddd7c9 55%, #cfc8b8 100%);
+}
+
+.fih__wrap {
+  position: relative; width: min(96vw, 170vh); aspect-ratio: 16 / 9; will-change: transform;
+}
+.fih__base {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain; user-select: none; -webkit-user-drag: none;
+}
+
+.fih__tree {
+  position: absolute; will-change: transform, opacity;
+  /* feather plane edges so each blends into the island (tunable per your taste) */
+  -webkit-mask-image: radial-gradient(ellipse 93% 96% at 50% 47%, #000 76%, transparent 100%);
+          mask-image: radial-gradient(ellipse 93% 96% at 50% 47%, #000 76%, transparent 100%);
+}
+.fih__tree canvas { width: 100%; height: 100%; display: block; }
+
+.fih__titles {
+  position: absolute; left: 50%; top: 7%; transform: translateX(-50%);
+  text-align: center; z-index: 5; pointer-events: none;
+}
+.fih__titles h1 {
+  font-size: clamp(28px, 5vw, 64px); letter-spacing: -0.02em; color: #2c2013;
+  text-shadow: 0 2px 18px rgba(255, 255, 255, 0.5);
+}
+.fih__titles h1 span {
+  display: block; font-size: 0.5em; font-weight: 600; letter-spacing: -0.01em;
+  margin-top: 0.2em; color: #4a3a24;
+}
+.fih__titles p { margin-top: 0.4rem; font-size: clamp(13px, 1.5vw, 19px); color: #5a4630; }
+
+.fih__hotspot {
+  position: absolute; transform: translate(-50%, -50%) scale(0.7); opacity: 0; pointer-events: none;
+  display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;
+  background: rgba(31, 22, 12, 0.86); color: #f5efe3;
+  padding: 0.5rem 0.85rem; border-radius: 999px;
+  font-size: clamp(11px, 1.15vw, 15px); font-weight: 600; text-decoration: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28); border: 1px solid rgba(200, 150, 42, 0.5);
+  backdrop-filter: blur(4px);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.35s, background 0.2s;
+}
+.fih__hotspot.on { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+.fih__hotspot:hover { background: #7a3b18; }
+.fih__dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #c8962a;
+  box-shadow: 0 0 0 4px rgba(200, 150, 42, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fih__wrap { transform: none !important; }
+}
+
+/* --- R3F version additions --- */
+
+/* The tree billboards carry the footage's neutral-gray backdrop (rgb(198,198,198)
+   family) baked in; the 3D stage bg must live in that family or feathered plane
+   edges show as gray halos. Slightly warm ramp keeps it on-brand. */
+.fih--r3f .fih__stage {
+  background: radial-gradient(120% 90% at 62% 28%, #dbd8d2 0%, #c8c6c0 50%, #b2afa6 100%);
+}
+.fih__wrap canvas { display: block; width: 100% !important; height: 100% !important; }
+
+/* drei <Html center> already centers the wrapper on the anchor — strip the 2D
+   version's own translate(-50%,-50%) or the pill gets centered twice. */
+.fih__hotspot-wrap { pointer-events: none; }
+.fih__hotspot-wrap .fih__hotspot { position: relative; left: auto; top: auto; transform: scale(0.7); }
+.fih__hotspot-wrap .fih__hotspot.on { transform: scale(1); }
+
+.fih__loader {
+  position: absolute; inset: auto 0 8% 0; margin: 0 auto; width: fit-content;
+  display: flex; align-items: center; gap: 0.5rem; z-index: 6;
+  background: rgba(31, 22, 12, 0.86); color: #f5efe3;
+  padding: 0.5rem 0.95rem; border-radius: 999px;
+  font-size: 14px; font-weight: 600;
+  border: 1px solid rgba(200, 150, 42, 0.5);
+  transition: opacity 0.6s ease;
+}
+.fih__loader--done { opacity: 0; pointer-events: none; }
+
+/* golden-hour wash + gathering dusk at the foot of the stage — driven by
+   scroll progress (opacity only), builds as the harvest ripens */
+.fih__glow {
+  position: absolute; inset: 0; z-index: 4; pointer-events: none; opacity: 0;
+  background:
+    radial-gradient(85% 65% at 62% 30%, rgba(212, 160, 23, 0.28) 0%, rgba(212, 160, 23, 0.08) 50%, transparent 74%),
+    linear-gradient(to top, rgba(44, 32, 19, 0.38) 0%, transparent 42%);
+  /* keep the island itself crisp — the wash lives at the edges, not over the art */
+  -webkit-mask-image: radial-gradient(62% 55% at 50% 54%, transparent 34%, #000 72%);
+          mask-image: radial-gradient(62% 55% at 50% 54%, transparent 34%, #000 72%);
+  will-change: opacity;
+}
+
+/* cool slate mist that peaks mid-journey then yields to the gold —
+   the mysterious middle chapter of the color story */
+.fih__mist {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0;
+  background:
+    radial-gradient(120% 80% at 38% 72%, rgba(70, 74, 92, 0.30) 0%, rgba(70, 74, 92, 0.10) 45%, transparent 75%),
+    radial-gradient(90% 60% at 78% 20%, rgba(70, 74, 92, 0.16) 0%, transparent 60%);
+  will-change: opacity;
+}
+
+@media (max-width: 480px) {
+  .fih__hotspot { font-size: 11px; padding: 0.35rem 0.6rem; }
+}

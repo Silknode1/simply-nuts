@@ -118,12 +118,28 @@ The event dispatcher (`packages/core/src/events/`) fans out to multiple sinks:
 ## CommerceAdapter Interface
 All commerce operations go through `CommerceAdapter` (defined in `packages/core/src/commerce/types.ts`). Currently using `mockAdapter` in prototype. Will be replaced with real Shopify Storefront API adapter in Hydrogen.
 
+## Design Direction (2026-07-08 — supersedes the old landing UI)
+- The **3D island scroll journey** (`FloatingIslandHero3D.tsx`, route `/island`) is the
+  approved front-door experience. The entire site will be built as a 3D scroll journey
+  around it.
+- ⚠ The pre-3D retail landing UI (the current `HomePage.tsx` retail-forward design and
+  the old prototype's look) is **DEPRECATED — do not reuse or extend it** for new pages.
+  New ecommerce UI/UX and the corporate gifting experience get fresh designs in the
+  journey's visual language (wood/gold/cream palette, editorial warmth, light 3D).
+- Corporate gifting product reality (for upcoming UI work): laser-engraved wooden boxes,
+  bamboo containers, gift tins, etc., filled with nuts/chocolates/mixes in the customized
+  container, then packaged, labeled, and shipped directly to the buyer's clients.
+
 ## Workflow Rules
 - Read `docs/mvp-backlog.md` to understand priorities before starting new features
 - New shared types go in `packages/types`, business logic in `packages/core`
 - Do NOT add Shopify-specific code to `packages/core` — keep it adapter-agnostic
 - Always run `npm run typecheck` before declaring work complete
 - Event tracking: new user actions should emit events through the dispatcher
+- ⚠ NEVER store source/master assets under any `dist/` directory — Vite's build
+  empties it (`emptyOutDir`). This destroyed the hero generation masters on
+  2026-07-08 (see `apps/prototype-web/brand-src/hero-build/README-ASSET-INCIDENT.md`).
+  Brand/source assets live in `apps/prototype-web/brand-src/`.
 
 ## Relationship to Prototype Repo
 The working prototype at `/Users/danielcarney/Documents/simply-nuts-main/` feeds patterns into this monorepo. When migrating components, place shared ones in `packages/ui`.
