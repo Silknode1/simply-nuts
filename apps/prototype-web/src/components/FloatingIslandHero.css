@@ -24,11 +24,12 @@
 .fih__tree canvas { width: 100%; height: 100%; display: block; }
 
 .fih__titles {
-  position: absolute; left: 50%; top: 7%; transform: translateX(-50%);
+  position: absolute; left: 50%; top: 12%; transform: translateX(-50%);
   text-align: center; z-index: 5; pointer-events: none;
+  width: max-content; max-width: 92vw;
 }
 .fih__titles h1 {
-  font-size: clamp(28px, 5vw, 64px); letter-spacing: -0.02em; color: #2c2013;
+  font-size: clamp(26px, 4.4vw, 56px); letter-spacing: -0.02em; color: #2c2013;
   text-shadow: 0 2px 18px rgba(255, 255, 255, 0.5);
 }
 .fih__titles h1 span {
@@ -110,4 +111,14 @@
 
 @media (max-width: 480px) {
   .fih__hotspot { font-size: 11px; padding: 0.35rem 0.6rem; }
+}
+
+/* Chippy + the laser engraver — the journey's sign-off, revealed as the scroll lands */
+.fih__finale {
+  position: absolute; right: 3%; bottom: 3%; z-index: 5;
+  pointer-events: none; opacity: 0; will-change: opacity, transform;
+}
+.fih__finale img {
+  height: clamp(140px, 30vh, 320px); width: auto;
+  filter: drop-shadow(0 10px 24px rgba(44, 32, 19, 0.35));
 }

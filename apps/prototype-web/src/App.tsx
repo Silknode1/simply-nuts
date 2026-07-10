@@ -16,9 +16,9 @@ function JourneyHeader() {
     <header className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
       <Link to="/" className="pointer-events-auto no-underline" aria-label="Simply Nuts & More home">
         <img
-          src="/brand/logo-main.png"
+          src="/brand/logo-wordmark.webp"
           alt="Simply Nuts & More"
-          className="h-12 w-auto rounded-md bg-cream/95 p-1 shadow-md"
+          className="h-14 md:h-20 w-auto drop-shadow-lg"
         />
       </Link>
     </header>

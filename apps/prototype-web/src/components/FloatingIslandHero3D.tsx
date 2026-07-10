@@ -69,8 +69,8 @@ const ROOTS_Z = -0.6;
 const SURFACE_Z = 0;
 // Frame the island lower + smaller than full-bleed so tree tops clear the
 // navbar/titles on wide desktop viewports and the island reads centered.
-const BASE_S = 0.76;
-const BASE_Y = -0.7;
+const BASE_S = 0.68;
+const BASE_Y = -1.27;
 
 // critical assets gating the loader: 2 island layers + 1 first frame per tree
 const CRITICAL_COUNT = 2 + TREES.length;
@@ -295,8 +295,11 @@ function MaturingTree({
     if (shadowEl.current) shadowEl.current.position.x = w * lerp(-0.06, 0.12, smooth(p));
     if (reduced || !groupEl.current) return;
     const ms = clock.elapsedTime * 1000;
-    // breeze sway from the base, phase-offset per tree
-    groupEl.current.rotation.z = Math.sin(ms / 1900 + index * 1.7) * 0.012;
+    const chaos = 1 + 1.1 * smooth(p);
+    // breeze sway from the base (two harmonics, phase-offset per tree),
+    // wilder as the harvest ripens
+    groupEl.current.rotation.z =
+      (Math.sin(ms / 1900 + index * 1.7) * 0.012 + Math.sin(ms / 640 + index * 2.3) * 0.004) * chaos;
     // one satisfying pulse the moment the tree finishes ripening
     if (local >= 1 && rt.current.pulseStart < 0) rt.current.pulseStart = ms;
     let pulse = 1;
@@ -304,7 +307,9 @@ function MaturingTree({
       const k = clamp((ms - rt.current.pulseStart) / 420, 0, 1);
       pulse = 1 + 0.05 * Math.sin(k * Math.PI);
     }
-    groupEl.current.scale.setScalar(s * pulse);
+    // canopy "breathe": a slight vertical stretch that reads as leaves rustling
+    const rustle = 1 + Math.sin(ms / 480 + index * 3.1) * 0.004 * chaos;
+    groupEl.current.scale.set(s * pulse, s * pulse * rustle, s * pulse);
   });
 
   // hotspot anchor: same stage % as the 2D version (left + w*0.52, top + h*0.3), now relative to base pivot
@@ -357,12 +362,12 @@ function ContactShadow({
     // island up -> shadow smaller + lighter; harvest weight -> darker, and the
     // shadow follows the island down as it sinks
     mesh.current.scale.setScalar(1 - bob * 0.05 + e * 0.1);
-    mesh.current.position.y = -4.0 - 0.25 * e;
+    mesh.current.position.y = -4.1 - 0.25 * e;
     mat.current.opacity = 0.16 + 0.18 * e - bob * 0.03;
   });
 
   return (
-    <mesh ref={mesh} position={[0, -4.0, -1.2]}>
+    <mesh ref={mesh} position={[0, -4.1, -1.2]}>
       <planeGeometry args={[9, 2.2]} />
       <meshBasicMaterial ref={mat} map={shadowTex} transparent opacity={0.2} depthWrite={false} toneMapped={false} />
     </mesh>
@@ -371,10 +376,14 @@ function ContactShadow({
 
 /** A soft cloud shadow drifting slowly across the moss — the sky is alive. */
 function CloudShadow({
-  progressRef, shadowTex,
+  progressRef, shadowTex, speed, phase, y, strength,
 }: {
   progressRef: React.MutableRefObject<number>;
   shadowTex: THREE.CanvasTexture;
+  speed: number;
+  phase: number;
+  y: number;
+  strength: number;
 }) {
   const mesh = useRef<THREE.Mesh>(null);
   const mat = useRef<THREE.MeshBasicMaterial>(null);
@@ -382,13 +391,15 @@ function CloudShadow({
   useFrame(({ clock }) => {
     if (!mesh.current || !mat.current) return;
     const ms = clock.elapsedTime * 1000;
-    mesh.current.position.x = Math.sin(ms / 8000) * 3.8;
+    const p = progressRef.current;
+    // clouds hurry a little as the harvest builds
+    mesh.current.position.x = Math.sin(ms / (speed / (1 + 0.5 * smooth(p))) + phase) * 3.8;
     // strongest mid-journey, when the mist is at its most mysterious
-    mat.current.opacity = 0.05 + 0.11 * Math.sin(Math.PI * progressRef.current);
+    mat.current.opacity = (0.05 + 0.11 * Math.sin(Math.PI * p)) * strength;
   });
 
   return (
-    <mesh ref={mesh} position={[0, 0.5, 0.03]}>
+    <mesh ref={mesh} position={[0, y, 0.03]}>
       <planeGeometry args={[7, 2.6]} />
       <meshBasicMaterial ref={mat} map={shadowTex} transparent opacity={0.05} depthWrite={false} toneMapped={false} />
     </mesh>
@@ -397,7 +408,7 @@ function CloudShadow({
 
 /** Gold pollen motes drifting up through the orchard — subtle ambient life. */
 const MOTE_COUNT = 64;
-function Motes({ moteTex }: { moteTex: THREE.CanvasTexture }) {
+function Motes({ moteTex, progressRef }: { moteTex: THREE.CanvasTexture; progressRef: React.MutableRefObject<number> }) {
   const points = useRef<THREE.Points>(null);
   const seeds = useMemo(() => Array.from({ length: MOTE_COUNT }, (_, i) => ({
     phase: i * 2.399, // golden-angle spread, deterministic
@@ -420,10 +431,11 @@ function Motes({ moteTex }: { moteTex: THREE.CanvasTexture }) {
   useFrame(({ clock }, delta) => {
     if (!points.current) return;
     const ms = clock.elapsedTime * 1000;
+    const chaos = 1 + 1.2 * smooth(progressRef.current);
     const pos = geo.attributes.position.array as Float32Array;
     for (let i = 0; i < MOTE_COUNT; i++) {
-      pos[i * 3 + 1] += seeds[i].speed * delta * 60;
-      pos[i * 3] += Math.sin(ms / 3000 + seeds[i].phase) * 0.0012 * delta * 60;
+      pos[i * 3 + 1] += seeds[i].speed * delta * 60 * chaos;
+      pos[i * 3] += Math.sin(ms / 3000 + seeds[i].phase) * 0.0012 * delta * 60 * chaos;
       if (pos[i * 3 + 1] > 4.4) pos[i * 3 + 1] = -3.4;
     }
     geo.attributes.position.needsUpdate = true;
@@ -476,13 +488,14 @@ function Sparkles({
 
 /** Leaves + grass blades lazily circulating around the island, one instanced draw per depth band. */
 function DriftingLeaves({
-  leafTex, count, zBase, zSpread, tint,
+  leafTex, count, zBase, zSpread, tint, progressRef,
 }: {
   leafTex: THREE.CanvasTexture;
   count: number;
   zBase: number;
   zSpread: number;
   tint: 'green' | 'mixed';
+  progressRef: React.MutableRefObject<number>;
 }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -512,14 +525,15 @@ function DriftingLeaves({
   useFrame(({ clock }) => {
     if (!mesh.current) return;
     const ms = clock.elapsedTime * 1000;
+    const chaos = 1 + 1.2 * smooth(progressRef.current);
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       dummy.position.set(
-        s.bx + Math.cos(ms * s.w + s.phase) * s.orbit,
-        s.by + Math.sin(ms * s.w * 0.7 + s.phase) * s.orbit * 0.55,
+        s.bx + Math.cos(ms * s.w * chaos + s.phase) * s.orbit,
+        s.by + Math.sin(ms * s.w * 0.7 * chaos + s.phase) * s.orbit * 0.55,
         s.bz,
       );
-      dummy.rotation.z = s.phase + ms * s.spin;
+      dummy.rotation.z = s.phase + ms * s.spin * chaos;
       dummy.scale.setScalar(s.scale);
       dummy.updateMatrix();
       mesh.current.setMatrixAt(i, dummy.matrix);
@@ -561,16 +575,17 @@ function IslandRig({
     const g = group.current;
     const ms = clock.elapsedTime * 1000;
     const e = smooth(progressRef.current);
-    // float + slow lateral sway; the island sinks, tilts and grows as the
-    // harvest ripens down the page — weight gathering in the branches
-    g.position.y = BASE_Y + Math.sin(ms / 1400) * 0.14 + lerp(0.15, -0.3, e);
-    g.rotation.z = Math.sin(ms / 2600) * 0.009;
+    // idle life is layered sines; everything gets a little wilder as the
+    // harvest ripens (chaos), while the island sinks, tilts and grows
+    const chaos = 1 + 0.4 * e;
+    g.position.y = BASE_Y + (Math.sin(ms / 1400) * 0.12 + Math.sin(ms / 530) * 0.02) * chaos + lerp(0.12, -0.06, e);
+    g.rotation.z = (Math.sin(ms / 2600) * 0.009 + Math.sin(ms / 970) * 0.003) * (1 + 1.1 * e);
     g.rotation.x = lerp(0.018, -0.045, e);
     g.scale.setScalar(BASE_S * lerp(1.0, 1.08, e));
     // damped pointer orbit + a slow dolly-in with scroll — the journey draws you closer
     const tx = pointer.current.x * 2.6;
     const ty = -pointer.current.y * 1.4;
-    const tz = CAM_DIST - 0.9 * e;
+    const tz = CAM_DIST - 0.5 * e;
     camera.position.x += (tx - camera.position.x) * 0.06;
     camera.position.y += (ty - camera.position.y) * 0.06;
     camera.position.z += (tz - camera.position.z) * 0.06;
@@ -586,6 +601,7 @@ export default function FloatingIslandHero3D() {
   const glowRef = useRef<HTMLDivElement>(null);
   const mistRef = useRef<HTMLDivElement>(null);
   const titlesRef = useRef<HTMLDivElement>(null);
+  const finaleRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
   const [pending, setPending] = useState(CRITICAL_COUNT);
 
@@ -608,14 +624,15 @@ export default function FloatingIslandHero3D() {
     if (reduced) {
       progressRef.current = 1; // still, ripe, shoppable
       if (glowRef.current) glowRef.current.style.opacity = '0.9';
+      if (finaleRef.current) { finaleRef.current.style.opacity = '1'; finaleRef.current.style.transform = 'none'; }
       return;
     }
     const st = ScrollTrigger.create({
       trigger: sectionRef.current!,
       start: 'top top',
-      end: '+=360%',
+      end: '+=520%', // long pin = slow ripening; let people savor the harvest
       pin: stageRef.current!,
-      scrub: 0.6,
+      scrub: 0.9,
       onUpdate: (self) => {
         const p = self.progress;
         progressRef.current = p;
@@ -625,6 +642,12 @@ export default function FloatingIslandHero3D() {
         if (glowRef.current) glowRef.current.style.opacity = String(e);
         if (mistRef.current) mistRef.current.style.opacity = String(Math.sin(Math.PI * p) * 0.85);
         if (titlesRef.current) titlesRef.current.style.opacity = String(1 - 0.85 * e);
+        // Chippy + laser engraver signs off the journey as the scroll lands
+        if (finaleRef.current) {
+          const k = clamp((p - 0.84) / 0.13, 0, 1);
+          finaleRef.current.style.opacity = String(k);
+          finaleRef.current.style.transform = `translateY(${(1 - k) * 36}px)`;
+        }
       },
     });
     return () => st.kill();
@@ -648,11 +671,16 @@ export default function FloatingIslandHero3D() {
             <ContactShadow progressRef={progressRef} shadowTex={shadowTex} reduced={reduced} />
             <IslandRig progressRef={progressRef} reduced={reduced}>
               {!reduced && (
-                <DriftingLeaves leafTex={leafTex} count={22} zBase={-1.1} zSpread={0.35} tint="green" />
+                <DriftingLeaves leafTex={leafTex} count={30} zBase={-1.1} zSpread={0.35} tint="green" progressRef={progressRef} />
               )}
               <LayerPlane url={asset('layers/roots.webp')} z={ROOTS_Z} onReady={markReady} />
               <LayerPlane url={asset('layers/surface.webp')} z={SURFACE_Z} onReady={markReady} />
-              {!reduced && <CloudShadow progressRef={progressRef} shadowTex={shadowTex} />}
+              {!reduced && (
+                <>
+                  <CloudShadow progressRef={progressRef} shadowTex={shadowTex} speed={8000} phase={0} y={0.5} strength={1} />
+                  <CloudShadow progressRef={progressRef} shadowTex={shadowTex} speed={5400} phase={2.6} y={1.15} strength={0.65} />
+                </>
+              )}
               {TREES.map((t, i) => (
                 <MaturingTree
                   key={t.id}
@@ -667,8 +695,8 @@ export default function FloatingIslandHero3D() {
               ))}
               {!reduced && (
                 <>
-                  <DriftingLeaves leafTex={leafTex} count={18} zBase={0.45} zSpread={0.15} tint="mixed" />
-                  <Motes moteTex={moteTex} />
+                  <DriftingLeaves leafTex={leafTex} count={26} zBase={0.45} zSpread={0.15} tint="mixed" progressRef={progressRef} />
+                  <Motes moteTex={moteTex} progressRef={progressRef} />
                   <Sparkles sparkTex={sparkTex} progressRef={progressRef} phase={0} />
                   <Sparkles sparkTex={sparkTex} progressRef={progressRef} phase={Math.PI} />
                 </>
@@ -678,6 +706,9 @@ export default function FloatingIslandHero3D() {
         </div>
         <div ref={mistRef} className="fih__mist" />
         <div ref={glowRef} className="fih__glow" />
+        <div ref={finaleRef} className="fih__finale" aria-hidden="true">
+          <img src={`${BASE}brand/chippy-laser.webp`.replace(/\/{2,}/g, '/')} alt="" draggable={false} />
+        </div>
         <div className={`fih__loader${pending <= 0 ? ' fih__loader--done' : ''}`} aria-hidden={pending <= 0}>
           <span className="fih__dot" />
           Tending the orchard…
