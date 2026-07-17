@@ -1,45 +1,33 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
+import JourneyNav from './components/JourneyNav';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import CorporateGiftingPage from './pages/CorporateGiftingPage';
 
-// three.js is heavy — keep it out of the landing-page bundle
+// three.js is heavy — keep it out of the shared bundle
 const FloatingIslandHero3D = lazy(() => import('./components/FloatingIslandHero3D'));
 const FloatingIslandHeroCanvas = lazy(() => import('./components/FloatingIslandHeroCanvas'));
 
-/** Chrome-free header for the 3D journey: just the logo, floating over the scene. */
-function JourneyHeader() {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
-      <Link to="/" className="pointer-events-auto no-underline" aria-label="Simply Nuts & More home">
-        <img
-          src="/brand/logo-wordmark.webp"
-          alt="Simply Nuts & More"
-          className="h-14 md:h-20 w-auto drop-shadow-lg"
-        />
-      </Link>
-    </header>
-  );
-}
-
 function Shell() {
   const { pathname } = useLocation();
-  // The island routes are a self-contained 3D scroll journey — no nav chrome
-  // (logo only) and the page ends where the pinned scroll ends, with no
-  // footer below to scroll into.
-  const immersive = pathname === '/island' || pathname === '/island-2d';
+  // The island journey IS the homepage — a self-contained 3D scroll story.
+  // It gets the floating glass JourneyNav (no standard chrome) and no footer,
+  // so the page scroll ends exactly where the pinned journey ends.
+  const immersive = pathname === '/' || pathname === '/island-2d';
   return (
     <div className="min-h-screen flex flex-col">
       <a href="#main-content" className="skip-link">Skip to main content</a>
-      {immersive ? <JourneyHeader /> : <Navbar />}
+      {immersive ? <JourneyNav /> : <Navbar />}
       <main id="main-content" className="flex-1">
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/island" element={<Suspense fallback={null}><FloatingIslandHero3D /></Suspense>} />
+          <Route path="/" element={<Suspense fallback={null}><FloatingIslandHero3D /></Suspense>} />
+          {/* legacy route from the /island preview era */}
+          <Route path="/island" element={<Navigate to="/" replace />} />
           <Route path="/island-2d" element={<Suspense fallback={null}><FloatingIslandHeroCanvas /></Suspense>} />
+          <Route path="/corporate" element={<CorporateGiftingPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
         </Routes>

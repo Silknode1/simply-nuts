@@ -13,8 +13,14 @@ const PRODUCTS_QUERY = `
         node {
           id
           title
+          handle
+          onlineStoreUrl
           productType
           tags
+          featuredImage {
+            url(transform: {maxWidth: 640, maxHeight: 640})
+            altText
+          }
           priceRange {
             minVariantPrice {
               amount
@@ -52,8 +58,11 @@ const CART_CREATE_MUTATION = `
 interface ShopifyProductNode {
   id: string;
   title: string;
+  handle: string;
+  onlineStoreUrl: string | null;
   productType: string;
   tags: string[];
+  featuredImage: {url: string; altText: string | null} | null;
   priceRange: {
     minVariantPrice: {
       amount: string;
@@ -86,7 +95,14 @@ function mapToProduct(node: ShopifyProductNode): Product {
     id: node.id,
     title: node.title,
     price: parseFloat(node.priceRange.minVariantPrice.amount),
+    currency: node.priceRange.minVariantPrice.currencyCode,
     category: inferCategory(node),
+    handle: node.handle,
+    imageUrl: node.featuredImage?.url,
+    imageAlt: node.featuredImage?.altText ?? undefined,
+    // onlineStoreUrl is null until the store is public; callers can fall
+    // back to `${SHOP_URL}/products/${handle}`.
+    url: node.onlineStoreUrl ?? undefined,
   };
 }
 

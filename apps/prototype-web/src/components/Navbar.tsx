@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { SHOP_URL } from '../config'
 
-type NavLink = { to: string; label: string; external?: boolean; hash?: boolean }
+type NavLink = { to: string; label: string; external?: boolean }
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
-  const navigate = useNavigate()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -18,56 +17,27 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Hash links jump to sections on the home page.
   const links: NavLink[] = [
-    { to: '/#best-sellers', label: 'Shop', hash: true },
-    { to: '/#heritage', label: 'Our Story', hash: true },
-    { to: '/contact', label: 'Corporate Gifting' },
+    { to: SHOP_URL, label: 'Shop', external: true },
+    { to: '/corporate', label: 'Corporate Gifting' },
     { to: '/about', label: 'About' },
     { to: '/contact', label: 'Contact' },
   ]
 
-  const goToHash = (hash: string) => {
-    const id = hash.replace('/#', '')
-    if (location.pathname !== '/') {
-      navigate('/')
-      // Wait for home page to mount, then scroll.
-      window.setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-      }, 60)
-    } else {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-    }
-  }
+  const isActive = (link: NavLink) => !link.external && location.pathname === link.to
 
-  const linkClass =
-    'text-sm font-semibold tracking-wide transition-colors no-underline text-wood-100 hover:text-gold-300 bg-transparent border-none cursor-pointer p-0'
+  const linkClass = (active: boolean) =>
+    `text-sm font-semibold tracking-wide transition-colors no-underline ${
+      active ? 'text-gold-400' : 'text-wood-100 hover:text-gold-300'
+    }`
 
   const renderLink = (link: NavLink, onClick?: () => void, block = false) => {
-    const cls = `${block ? 'block py-2.5 ' : ''}${linkClass}`
-    if (link.external) {
-      return (
-        <a key={link.label + link.to} href={link.to} className={cls} onClick={onClick}>
-          {link.label}
-        </a>
-      )
-    }
-    if (link.hash) {
-      return (
-        <button
-          key={link.label + link.to}
-          type="button"
-          className={cls}
-          onClick={() => {
-            onClick?.()
-            goToHash(link.to)
-          }}
-        >
-          {link.label}
-        </button>
-      )
-    }
-    return (
+    const cls = `${block ? 'block py-2.5 ' : ''}${linkClass(isActive(link))}`
+    return link.external ? (
+      <a key={link.label + link.to} href={link.to} className={cls} onClick={onClick}>
+        {link.label}
+      </a>
+    ) : (
       <Link key={link.label + link.to} to={link.to} className={cls} onClick={onClick}>
         {link.label}
       </Link>

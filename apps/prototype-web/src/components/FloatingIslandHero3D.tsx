@@ -5,6 +5,9 @@ import { Html } from '@react-three/drei';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SHOP_COLLECTIONS } from '../config';
+import { useFeaturedProducts } from '../hooks/useFeaturedProducts';
+import FeaturedHarvest from './FeaturedHarvest';
+import ChipmunkChase from './ChipmunkChase';
 import './FloatingIslandHero.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -574,14 +577,19 @@ function IslandRig({
     if (reduced || !group.current) return;
     const g = group.current;
     const ms = clock.elapsedTime * 1000;
-    const e = smooth(progressRef.current);
+    const p = progressRef.current;
+    const e = smooth(p);
+    // closing beat: the island parks to the left while the featured-product
+    // panel blooms in on the right (see FeaturedHarvest / onUpdate driver)
+    const park = smooth(clamp((p - 0.8) / 0.16, 0, 1));
     // idle life is layered sines; everything gets a little wilder as the
     // harvest ripens (chaos), while the island sinks, tilts and grows
     const chaos = 1 + 0.4 * e;
+    g.position.x = lerp(0, -2.7, park);
     g.position.y = BASE_Y + (Math.sin(ms / 1400) * 0.12 + Math.sin(ms / 530) * 0.02) * chaos + lerp(0.12, -0.06, e);
     g.rotation.z = (Math.sin(ms / 2600) * 0.009 + Math.sin(ms / 970) * 0.003) * (1 + 1.1 * e);
     g.rotation.x = lerp(0.018, -0.045, e);
-    g.scale.setScalar(BASE_S * lerp(1.0, 1.08, e));
+    g.scale.setScalar(BASE_S * lerp(1.0, 1.08, e) * lerp(1, 0.9, park));
     // damped pointer orbit + a slow dolly-in with scroll — the journey draws you closer
     const tx = pointer.current.x * 2.6;
     const ty = -pointer.current.y * 1.4;
@@ -592,7 +600,13 @@ function IslandRig({
     camera.lookAt(0, 0, 0);
   });
 
-  return <group ref={group} position={[0, BASE_Y, 0]} scale={BASE_S}>{children}</group>;
+  // reduced motion: a single static composition — island parked left, ripe,
+  // with the product panel sitting on the right (set once, no frame loop)
+  return (
+    <group ref={group} position={[reduced ? -2.2 : 0, BASE_Y, 0]} scale={reduced ? BASE_S * 0.92 : BASE_S}>
+      {children}
+    </group>
+  );
 }
 
 export default function FloatingIslandHero3D() {
@@ -602,8 +616,10 @@ export default function FloatingIslandHero3D() {
   const mistRef = useRef<HTMLDivElement>(null);
   const titlesRef = useRef<HTMLDivElement>(null);
   const finaleRef = useRef<HTMLDivElement>(null);
+  const harvestRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
   const [pending, setPending] = useState(CRITICAL_COUNT);
+  const products = useFeaturedProducts();
 
   const reduced = useMemo(
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -625,12 +641,17 @@ export default function FloatingIslandHero3D() {
       progressRef.current = 1; // still, ripe, shoppable
       if (glowRef.current) glowRef.current.style.opacity = '0.9';
       if (finaleRef.current) { finaleRef.current.style.opacity = '1'; finaleRef.current.style.transform = 'none'; }
+      if (harvestRef.current) {
+        harvestRef.current.classList.add('on', 'live');
+        harvestRef.current.style.opacity = '1';
+        harvestRef.current.style.transform = 'none';
+      }
       return;
     }
     const st = ScrollTrigger.create({
       trigger: sectionRef.current!,
       start: 'top top',
-      end: '+=520%', // long pin = slow ripening; let people savor the harvest
+      end: '+=600%', // long pin = slow ripening + room for the closing shop beat
       pin: stageRef.current!,
       scrub: 0.9,
       onUpdate: (self) => {
@@ -647,6 +668,14 @@ export default function FloatingIslandHero3D() {
           const k = clamp((p - 0.84) / 0.13, 0, 1);
           finaleRef.current.style.opacity = String(k);
           finaleRef.current.style.transform = `translateY(${(1 - k) * 36}px)`;
+        }
+        // the featured harvest blooms in as the island parks left
+        if (harvestRef.current) {
+          const k = clamp((p - 0.84) / 0.12, 0, 1);
+          harvestRef.current.style.opacity = String(k);
+          harvestRef.current.style.setProperty('--harvest-k', String(k));
+          harvestRef.current.classList.toggle('on', k > 0.12);
+          harvestRef.current.classList.toggle('live', k > 0.5);
         }
       },
     });
@@ -693,6 +722,9 @@ export default function FloatingIslandHero3D() {
                   onReady={markReady}
                 />
               ))}
+              {/* ambient wildlife: two chipmunks chasing across the moss —
+                  procedural choreography, hidden entirely on reduced motion */}
+              {!reduced && <ChipmunkChase progressRef={progressRef} shadowTex={shadowTex} />}
               {!reduced && (
                 <>
                   <DriftingLeaves leafTex={leafTex} count={26} zBase={0.45} zSpread={0.15} tint="mixed" progressRef={progressRef} />
@@ -706,6 +738,7 @@ export default function FloatingIslandHero3D() {
         </div>
         <div ref={mistRef} className="fih__mist" />
         <div ref={glowRef} className="fih__glow" />
+        <FeaturedHarvest ref={harvestRef} products={products} />
         <div ref={finaleRef} className="fih__finale" aria-hidden="true">
           <img src={`${BASE}brand/chippy-laser.webp`.replace(/\/{2,}/g, '/')} alt="" draggable={false} />
         </div>

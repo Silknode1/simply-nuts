@@ -39,7 +39,7 @@ export default function Footer() {
             <h4 className="font-display font-semibold text-gold-400 mb-3">Company</h4>
             <ul className="space-y-2 text-sm list-none p-0">
               <li><Link to="/about" className="hover:text-gold-300 text-wood-400 no-underline">About Us</Link></li>
-              <li><Link to="/contact" className="hover:text-gold-300 text-wood-400 no-underline">Corporate Gifting</Link></li>
+              <li><Link to="/corporate" className="hover:text-gold-300 text-wood-400 no-underline">Corporate Gifting</Link></li>
               <li><Link to="/contact" className="hover:text-gold-300 text-wood-400 no-underline">Contact</Link></li>
             </ul>
           </div>

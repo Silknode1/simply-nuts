@@ -1,0 +1,146 @@
+/* ==========================================================================
+   Warm liquid glass — Simply Nuts & More design primitives (Phase 4)
+   --------------------------------------------------------------------------
+   backdrop-filter blur+saturate panels, hairline gradient borders, and a soft
+   inner top highlight — tinted toward the wood/gold/cream @theme tokens so
+   the glass reads frosted amber, never iOS-silver.
+
+   Guardrails (docs/motion-system-v1.md):
+   - Blur PANELS ONLY. Never apply these classes to a full-screen layer that
+     sits over the R3F canvas.
+   - Blur is capped on mobile and removed where backdrop-filter is
+     unsupported (falls back to a more opaque tint).
+   - prefers-reduced-motion: transitions/hover-lifts are disabled; the glass
+     itself stays static.
+   ========================================================================== */
+
+@layer components {
+:root {
+  --glass-blur: 16px;
+  --glass-sat: 1.45;
+  /* espresso smoke — the primary (dark) glass tint */
+  --glass-tint: rgba(42, 24, 9, 0.52);
+  --glass-tint-deep: rgba(31, 22, 12, 0.66);
+  /* cream frost — the bright variant for standard pages */
+  --glass-bright-tint: rgba(253, 248, 240, 0.55);
+  /* gold → cream → copper hairline */
+  --glass-border-grad: linear-gradient(
+    135deg,
+    rgba(232, 192, 74, 0.65) 0%,
+    rgba(255, 250, 235, 0.22) 28%,
+    rgba(196, 94, 32, 0.35) 62%,
+    rgba(232, 192, 74, 0.5) 100%
+  );
+  --glass-highlight: inset 0 1px 0 rgba(255, 244, 214, 0.26);
+  --glass-shadow: 0 12px 36px rgba(31, 22, 12, 0.32);
+  --glass-radius: 18px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --glass-blur: 8px; /* mobile GPU budget: cap the blur */
+    --glass-sat: 1.2;
+  }
+}
+
+/* --- base panel ---------------------------------------------------------- */
+.glass {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--glass-radius);
+  background:
+    linear-gradient(to bottom, rgba(255, 244, 214, 0.06), rgba(255, 244, 214, 0) 42%),
+    var(--glass-tint);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  box-shadow: var(--glass-highlight), var(--glass-shadow);
+  color: #f5efe3;
+}
+
+/* hairline gradient border, radius-safe (masked padding ring) */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--glass-border-grad);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* no backdrop-filter support → lean on a deeper tint for legibility */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: var(--glass-tint-deep); }
+  .glass--bright { background: rgba(253, 248, 240, 0.92); }
+}
+
+/* --- bright (cream frost) variant ---------------------------------------- */
+.glass--bright {
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 46%),
+    var(--glass-bright-tint);
+  color: #3d2410;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 10px 30px rgba(61, 36, 16, 0.14);
+}
+
+/* --- nav bar -------------------------------------------------------------- */
+.glass-nav {
+  border-radius: 999px;
+  padding: 0.45rem 0.6rem;
+}
+
+/* --- card ------------------------------------------------------------------ */
+.glass-card {
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease;
+}
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--glass-highlight), 0 18px 44px rgba(31, 22, 12, 0.42);
+}
+
+/* --- pill / CTA ------------------------------------------------------------ */
+.glass-pill {
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.55rem 1.15rem;
+  font-weight: 600;
+  font-size: 0.925rem;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+.glass-pill:hover { transform: translateY(-1px); }
+
+/* zero-specificity display so Tailwind utilities (hidden, md:hidden, …) can
+   still show/hide pills responsively despite glass.css loading later */
+:where(.glass-pill) { display: inline-flex; }
+
+/* solid burn CTA that still sits on glass surfaces */
+.glass-pill--solid {
+  background: linear-gradient(to bottom, #d96a26, #c45e20 55%, #a84e16);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 224, 178, 0.45), 0 8px 22px rgba(139, 58, 15, 0.4);
+}
+.glass-pill--solid:hover { background: linear-gradient(to bottom, #e87d3e, #d96a26 55%, #b85a1c); }
+.glass-pill--solid::before { display: none; }
+
+/* --- reduced motion --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .glass-card,
+  .glass-pill {
+    transition: none;
+  }
+  .glass-card:hover,
+  .glass-pill:hover {
+    transform: none;
+  }
+}
+}
