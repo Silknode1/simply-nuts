@@ -83,10 +83,11 @@ Backend adapter, SQLite DB layer, 118 tests, CI/CD, frontend a11y polish. Commit
 ### ~~TASK-002~~: Repo hygiene (✅ DONE)
 Removed iCloud sync-conflict duplicates (" 2"/" 3" files) including artifacts inside `.git` (`master *.lock`, `index *`, stray `.DS_Store`) that were blocking `git push`. `git fsck` clean.
 
-> ⚠️ **Standing risk — iCloud sync:** The repo lives in `~/Documents`, which iCloud Drive syncs.
-> iCloud periodically creates conflicted copies *inside* `.git`, which can corrupt git state and
-> hang pushes. **Recommendation (TASK-003):** move the repo out of any cloud-synced folder
-> (e.g. `~/dev/simply-nuts-next`) or exclude it from iCloud. See "Open Decisions."
+> ✅ **RESOLVED (TASK-003, 2026-07-19):** the repo now lives at `~/dev/simply-nuts-next`,
+> outside iCloud sync. iCloud had struck twice: conflicted copies inside `.git` (hung pushes),
+> then evicted `node_modules` to the cloud (hung the dev server). A symlink remains at the old
+> `~/Documents` path; git history verified with `fsck`, deps reinstalled clean from the lockfile,
+> typecheck + build + dev server re-verified after the move. Never move it back.
 
 ---
 

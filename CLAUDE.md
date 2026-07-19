@@ -6,7 +6,11 @@ This is the next-generation monorepo for Simply Nuts & More, targeting a phased 
 **North Star:** Turn manual gifting coordination into a repeatable, low-friction ordering system.
 
 ## Project Root
-`/Users/danielcarney/Documents/simply-nuts-next/`
+`/Users/danielcarney/dev/simply-nuts-next/`
+(Moved out of iCloud-synced `~/Documents` on 2026-07-19 after iCloud twice broke the
+repo — corrupted `.git` lock files, then evicted `node_modules` to the cloud, which
+hung the dev server. A symlink remains at the old path. Never move it back into any
+cloud-synced folder.)
 
 ## Tech Stack
 - **Monorepo:** npm workspaces
