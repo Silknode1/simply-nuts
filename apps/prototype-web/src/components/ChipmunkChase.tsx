@@ -114,6 +114,9 @@ type Critter = {
   to: Pt;
   t: number;          // 0..1 along the current segment
   segDur: number;     // seconds
+  hops: number;       // bounce arcs in this segment (bounding gait)
+  hopLen: number;     // preferred hop length, randomized per critter
+  landHide: boolean;  // this segment ends behind a tree
   state: CritterState;
   until: number;      // ms deadline for idle/hidden/peek
   clip: ClipName;
@@ -130,7 +133,8 @@ const dist = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, (a.y - b.y) * 1.9); // y co
 function makeCritter(start: Pt, scale: number, tint: THREE.Vector3, speed: number): Critter {
   return {
     pos: { ...start }, from: { ...start }, to: { ...start },
-    t: 1, segDur: 1, state: 'idle', until: performance.now() + rnd(400, 1600),
+    t: 1, segDur: 1, hops: 1, hopLen: rnd(4.5, 6.5), landHide: false,
+    state: 'idle', until: performance.now() + rnd(400, 1600),
     clip: 'idle', facing: 1, hideZ: 0.1, speed, scale, tint,
   };
 }
@@ -175,6 +179,8 @@ export default function ChipmunkChase({
       v.loop = LOOPING[name];
       v.preload = 'auto';
       v.crossOrigin = 'anonymous';
+      // scurry energy: legs cycle fast; the 5s leap arc compresses into a ~1s spring
+      v.playbackRate = name === 'run' ? 1.5 : name === 'leap' ? 2.2 : 1;
       videos[name] = v;
       const tex = new THREE.VideoTexture(v);
       tex.minFilter = THREE.LinearFilter;
@@ -233,13 +239,16 @@ export default function ChipmunkChase({
     }
   };
 
-  const startSegment = (c: Critter, to: Pt, opts?: { leap?: boolean; dart?: boolean }) => {
+  const startSegment = (c: Critter, to: Pt, opts?: { leap?: boolean; dart?: boolean; landHide?: boolean }) => {
     c.from = { ...c.pos };
     c.to = { ...to };
     c.t = 0;
+    c.landHide = opts?.landHide ?? false;
     const d = dist(c.from, c.to);
-    const pace = c.speed * (opts?.dart ? 1.45 : 1);
-    c.segDur = opts?.leap ? rnd(0.95, 1.2) : Math.max(0.5, d / pace);
+    // bounding gait: travel is a chain of hop arcs, never a glide
+    c.hops = opts?.leap ? 1 : Math.max(1, Math.round(d / c.hopLen));
+    const pace = c.speed * (opts?.dart ? 1.6 : 1.25);
+    c.segDur = opts?.leap ? rnd(0.85, 1.1) : Math.max(0.4, d / pace);
     c.state = opts?.leap ? 'leap' : 'run';
     if (Math.abs(c.to.x - c.from.x) > 0.75) c.facing = c.to.x > c.from.x ? 1 : -1;
   };
@@ -251,10 +260,11 @@ export default function ChipmunkChase({
       target = trail.current.shift(); // follow the leader's breadcrumbs
     }
     if (!target) {
-      const near = WAYPOINTS.filter((w) => w !== c.to && dist(c.pos, w) > 4 && dist(c.pos, w) < 42);
+      // prefer short darts — chipmunks cover ground in bursts, not marathons
+      const near = WAYPOINTS.filter((w) => w !== c.to && dist(c.pos, w) > 4 && dist(c.pos, w) < 28);
       target = near[Math.floor(Math.random() * near.length)] ?? WAYPOINTS[0];
     }
-    const far = dist(c.pos, target) > 26;
+    const far = dist(c.pos, target) > 20;
     const reversed = Math.sign(target.x - c.pos.x) !== c.facing && Math.abs(target.x - c.pos.x) > 6;
     const wantLeap = (far || reversed) && !leaping.current && Math.random() < 0.65;
     if (wantLeap) leaping.current = true;
@@ -269,28 +279,30 @@ export default function ChipmunkChase({
 
   const arrive = (c: Critter, i: number, now: number) => {
     if (c.state === 'leap') leaping.current = false;
-    const isLeader = i === 0;
-    const roll = Math.random();
-    if (isLeader && roll < 0.16) {
-      // duck behind the nearest tree and vanish for a beat
-      const spot = [...HIDE_SPOTS].sort((a, b) => dist(c.pos, a) - dist(c.pos, b))[0];
-      c.hideZ = spot.z;
-      startSegment(c, spot, { dart: true });
-      setClip(c, i, 'run');
-      c.state = 'run';
-      c.until = -1; // flag: this run segment ends in hiding
-      return;
-    }
-    if (c.until === -1) {
-      // just reached the hide spot — disappear behind the billboard
+    if (c.landHide) {
+      // touched down at the hide spot — vanish behind the billboard
+      c.landHide = false;
       c.state = 'hidden';
-      c.until = now + rnd(1500, 4200);
+      c.until = now + rnd(1200, 3600);
       setClip(c, i, 'idle');
       return;
     }
-    if (roll < 0.42) {
+    const isLeader = i === 0;
+    const roll = Math.random();
+    if (isLeader && roll < 0.18) {
+      // head for the nearest tree; leap into cover when the gap is worth it
+      const spot = [...HIDE_SPOTS].sort((a, b) => dist(c.pos, a) - dist(c.pos, b))[0];
+      c.hideZ = spot.z;
+      const wantLeap = dist(c.pos, spot) > 14 && !leaping.current;
+      if (wantLeap) leaping.current = true;
+      startSegment(c, spot, { dart: true, leap: wantLeap, landHide: true });
+      setClip(c, i, wantLeap ? 'leap' : 'run');
+      return;
+    }
+    if (roll < 0.55) {
+      // chipmunks stop CONSTANTLY — short freeze, nibble, glance, gone again
       c.state = 'idle';
-      c.until = now + rnd(800, 2800);
+      c.until = now + rnd(500, 1900);
       setClip(c, i, 'idle');
       return;
     }
@@ -341,13 +353,27 @@ export default function ChipmunkChase({
           break;
         }
         case 'peek': {
-          if (now >= c.until) chooseNext(c, i, now); // dart back out
+          if (now >= c.until) {
+            // tree-to-tree: often springs straight from this trunk to another
+            const others = HIDE_SPOTS.filter((sp) => Math.abs(sp.x - c.pos.x) > 8);
+            const spot = others[Math.floor(Math.random() * others.length)];
+            if (spot && !leaping.current && Math.random() < 0.4) {
+              leaping.current = true;
+              c.hideZ = spot.z;
+              startSegment(c, spot, { leap: true, landHide: true });
+              setClip(c, i, 'leap');
+            } else {
+              chooseNext(c, i, now); // dart back out
+            }
+          }
           break;
         }
       }
 
       // --- project stage % → island world space (matches the tree math) ---
-      const covert = c.state === 'hidden' || c.state === 'peek' || c.until === -1;
+      // ground darts into cover slip behind the billboard on approach;
+      // tree-to-tree LEAPS stay visible mid-arc and vanish on touchdown
+      const covert = c.state === 'hidden' || c.state === 'peek' || (c.landHide && c.state === 'run');
       const z = covert ? c.hideZ : zFromY(c.pos.y);
       const s = depthScale(z);
       const wx = ((c.pos.x / 100) * STAGE_W - STAGE_W / 2) * s;
@@ -356,6 +382,10 @@ export default function ChipmunkChase({
       if (c.state === 'leap') {
         airborne = Math.sin(clamp(c.t, 0, 1) * Math.PI);
         footY += airborne * 0.42 * s;
+      } else if (c.state === 'run') {
+        // bounding gait: chained hop arcs — chipmunks bounce, they never glide
+        airborne = Math.abs(Math.sin(clamp(c.t, 0, 1) * Math.PI * c.hops));
+        footY += airborne * 0.17 * s;
       }
       group.position.set(wx, footY, z);
       group.scale.setScalar(s * c.scale);

@@ -51,11 +51,12 @@ type Tree = {
   win: [number, number];                            // maturation window in scroll progress 0..1
   z: number;                                        // billboard depth (world units)
   noShadow?: boolean;                               // edge trees: base shadow would hang off the island
+  underfill?: boolean;                              // clips grew only one side of the crown → mirror-fill the canopy band (see drawFrame)
   shop?: boolean; label?: string; href?: string;
 };
 
 const TREES: Tree[] = [
-  { id: 'almond',    frames: 61, left: 2.3,  top: 0.9,  w: 21.2, h: 50.3, win: [0.00, 0.34], z: 0.12, shop: true,  label: 'Shop Almonds',    href: NUTS },
+  { id: 'almond',    frames: 61, left: 2.3,  top: 0.9,  w: 21.2, h: 50.3, win: [0.00, 0.34], z: 0.12, underfill: true, shop: true, label: 'Shop Almonds', href: NUTS },
   { id: 'peanut',    frames: 61, left: 4.8,  top: 39.9, w: 11.4, h: 26.9, win: [0.05, 0.40], z: 0.20, noShadow: true, shop: true, label: 'Shop Peanuts', href: NUTS },
   { id: 'cashew',    frames: 61, left: 29.8, top: 0.7,  w: 21.0, h: 49.9, win: [0.12, 0.50], z: 0.10, shop: true,  label: 'Shop Cashews',    href: NUTS },
   { id: 'pistachio', frames: 61, left: 42.8, top: 8.7,  w: 18.3, h: 43.4, win: [0.22, 0.60], z: 0.16, shop: true,  label: 'Shop Pistachios', href: NUTS },
@@ -259,11 +260,31 @@ function MaturingTree({
   const drawFrame = useCallback((f: number) => {
     const img = rt.current.imgs[f];
     if (!img) return;
-    ctx.drawImage(img, 0, 0);
+    const W = ctx.canvas.width, H = ctx.canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    if (t.underfill) {
+      // The almond clips only ever grew ONE side of the crown — the tree
+      // reads lopsided/half-bloomed next to the full round trees. Mirror the
+      // canopy band onto itself: draw a horizontally-flipped copy of the top
+      // ~66% (canopy only, not the trunk/moss), nudged toward the sparse
+      // side, so blossoms fill both sides and it reads as a rounded crown.
+      const canopyH = H * 0.66;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, W, canopyH); // clip: canopy band only, spare the trunk
+      ctx.clip();
+      ctx.globalAlpha = 0.92;
+      ctx.translate(W, 0);
+      ctx.scale(-1, 1);            // horizontal mirror
+      ctx.translate(-W * 0.06, 0); // slide the mirrored crown to balance
+      ctx.drawImage(img, 0, 0);
+      ctx.restore();
+    }
+    ctx.drawImage(img, 0, 0); // real frame on top — trunk + true detail win
     tex.needsUpdate = true;
     rt.current.cur = f;
     invalidate();
-  }, [ctx, tex, invalidate]);
+  }, [ctx, tex, invalidate, t.underfill]);
 
   useEffect(() => {
     let alive = true;
