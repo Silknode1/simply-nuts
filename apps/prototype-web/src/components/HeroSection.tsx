@@ -48,7 +48,7 @@ export default function HeroSection() {
           animate={{opacity: 1}}
           transition={{duration: 0.5, delay: DELAYS.eyebrow}}
         >
-          Premium Custom Gifting — Since 1987
+          Premium Custom Gifting — Since 1986
         </motion.p>
 
         {/* Logo — appears earliest so it's solid by 60% mark */}
@@ -72,7 +72,7 @@ export default function HeroSection() {
           animate={{opacity: 1, y: 0}}
           transition={{duration: 0.55, delay: DELAYS.headline}}
         >
-          37 Years of Premium Gifting. Now With Your Name On It.
+          40 Years of Premium Gifting. Now With Your Name On It.
         </motion.h1>
 
         {/* Subtext — priority words: "laser-engraved", "Chanhassen, Minnesota" */}

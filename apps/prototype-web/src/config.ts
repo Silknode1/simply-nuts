@@ -16,3 +16,13 @@ export const SHOP_COLLECTIONS = {
   trailMixes: `${SHOP_URL}/collections/trail-mixes`,
   chocolates: `${SHOP_URL}/collections/chocolates`,
 } as const;
+
+/**
+ * Gift cards are a NATIVE Shopify feature on every plan (incl. Basic) at no extra
+ * cost — Shopify issues the unique code and delivers it by email/SMS. We deliberately
+ * do NOT build a gift-certificate system; we just link to the Shopify product.
+ *
+ * Owner setup: Shopify admin → Products → Gift cards → create the product, then
+ * confirm this handle matches.
+ */
+export const SHOP_GIFT_CARDS = `${SHOP_URL}/products/gift-card`;

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { SHOP_URL, SHOP_COLLECTIONS } from '../config'
+import { SHOP_URL, SHOP_COLLECTIONS, SHOP_GIFT_CARDS } from '../config'
 
 export default function Footer() {
   return (
@@ -19,7 +19,7 @@ export default function Footer() {
             </div>
             <p className="text-sm text-wood-400 leading-relaxed">
               Family-crafted nuts, trail mixes, and chocolates — roasted in small batches in Chanhassen,
-              Minnesota since 1987. A State Fair favorite for 37 years.
+              Minnesota since 1986. A State Fair favorite for 40 years.
             </p>
           </div>
 
@@ -31,6 +31,7 @@ export default function Footer() {
               <li><a href={SHOP_COLLECTIONS.nuts} className="hover:text-gold-300 text-wood-400 no-underline">Nuts</a></li>
               <li><a href={SHOP_COLLECTIONS.trailMixes} className="hover:text-gold-300 text-wood-400 no-underline">Trail Mixes</a></li>
               <li><a href={SHOP_COLLECTIONS.chocolates} className="hover:text-gold-300 text-wood-400 no-underline">Chocolates</a></li>
+              <li><a href={SHOP_GIFT_CARDS} className="hover:text-gold-300 text-wood-400 no-underline">Gift Cards</a></li>
             </ul>
           </div>
 
@@ -50,13 +51,13 @@ export default function Footer() {
             <ul className="space-y-2 text-sm list-none p-0 text-wood-400">
               <li>Chanhassen, Minnesota</li>
               <li><a href="tel:18884496887" className="hover:text-gold-300 text-wood-400 no-underline">1-888-449-6887</a></li>
-              <li>Family-run since 1987</li>
+              <li>Family-run since 1986</li>
             </ul>
           </div>
         </div>
 
         <div className="mt-12 pt-6 border-t border-wood-800 text-center text-xs text-wood-500">
-          &copy; {new Date().getFullYear()} Simply Nuts &amp; More. Family-crafted in Minnesota since 1987.
+          &copy; {new Date().getFullYear()} Simply Nuts &amp; More. Family-crafted in Minnesota since 1986.
         </div>
       </div>
     </footer>

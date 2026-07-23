@@ -57,17 +57,14 @@ const CANTERBURY_RUNS: Array<[string, string]> = [
 
 export const EVENTS_2026: NutGuyEvent[] = [
   ...CANTERBURY_RUNS.map(([start, end]) => ({ ...CANTERBURY, start, end })),
-  // ⚠️ TODO(owner): confirm the 2026 Minnesota State Fair run before publishing.
-  // The Fair traditionally runs 12 days ending on Labor Day (2026-09-07), but the
-  // legacy site lists no dates — do NOT ship an unverified date range.
-  // {
-  //   venue: 'Minnesota State Fair',
-  //   city: 'Falcon Heights, MN',
-  //   start: '2026-08-27',
-  //   end: '2026-09-07',
-  //   featured: true,
-  //   note: 'Find us in the Food Building — free samples, as always.',
-  // },
+  {
+    venue: 'Minnesota State Fair',
+    city: 'Falcon Heights, MN',
+    start: '2026-08-27',
+    end: '2026-09-07',
+    featured: true,
+    note: 'Twelve days of free samples. Confirmed by owner 2026-07-21.',
+  },
 ];
 
 /** Local-midnight Date for an ISO day string (avoids UTC off-by-one). */

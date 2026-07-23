@@ -23,7 +23,7 @@ export default function AboutPage() {
             transition={{ delay: 0.2 }}
           >
             A family business roasting premium nuts, mixes, and chocolates in
-            Chanhassen, Minnesota since 1987.
+            Chanhassen, Minnesota since 1986.
           </motion.p>
         </div>
       </section>
@@ -41,10 +41,10 @@ export default function AboutPage() {
             </div>
             <div>
               <h2 className="font-display text-3xl font-bold text-wood-900 mb-4">
-                37 Years of Small-Batch Roasting
+                40 Years of Small-Batch Roasting
               </h2>
               <p className="text-wood-600 mb-4">
-                Simply Nuts &amp; More started as a family business in 1987, and we still
+                Simply Nuts &amp; More started as a family business in 1986, and we still
                 roast and hand-mix everything in small batches right here in Chanhassen,
                 Minnesota. Nothing sits around getting stale.
               </p>
@@ -101,8 +101,8 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { num: '1987', label: 'Family-Run Since' },
-              { num: '37', label: 'Years Roasting' },
+              { num: '1986', label: 'Family-Run Since' },
+              { num: '40', label: 'Years Roasting' },
               { num: '19+', label: 'Treats By The Pound' },
               { num: 'MN', label: 'Made in Minnesota' },
             ].map((s) => (

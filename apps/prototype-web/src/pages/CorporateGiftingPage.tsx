@@ -54,7 +54,7 @@ export default function CorporateGiftingPage() {
               <span className="block text-gold-300 mt-1">Their new favorite gift.</span>
             </h1>
             <p className="text-cream/85 text-lg leading-relaxed mb-8">
-              Since 1987 we’ve helped Minnesota companies skip the boring gift basket:
+              Since 1986 we’ve helped Minnesota companies skip the boring gift basket:
               premium containers engraved with your brand, filled with freshly roasted
               treats, and shipped straight to every client on your list.
             </p>
@@ -70,12 +70,9 @@ export default function CorporateGiftingPage() {
         </div>
       </section>
 
-      {/* ---- client marquee ---- */}
-      <section className="py-12 border-b border-wood-100" aria-label="Companies we have gifted for">
-        <p className="text-center text-sm font-semibold tracking-widest uppercase text-wood-400 mb-6">
-          Trusted by teams across Minnesota &amp; beyond
-        </p>
-        <LogoMarquee />
+      {/* ---- client marquee: a translucent band riding over the hero image ---- */}
+      <section aria-label="Companies we have gifted for" className="-mt-px">
+        <LogoMarquee variant="glass" />
       </section>
 
       {/* ---- gallery ---- */}

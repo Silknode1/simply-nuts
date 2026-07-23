@@ -4,7 +4,7 @@ export default function ChippyMoment() {
       <img src="/brand/chippy-nut-art.jpg" alt="Chippy the chipmunk mascot" loading="lazy" />
       <div className="chippy-copy">
         <p className="eyebrow">Meet Chippy</p>
-        <h2>Family-Run Since 1987</h2>
+        <h2>Family-Run Since 1986</h2>
         <p>
           What started as a small nut roasting operation in Chanhassen, Minnesota has grown into a
           beloved gifting brand trusted by hundreds of companies nationwide. Three generations later,

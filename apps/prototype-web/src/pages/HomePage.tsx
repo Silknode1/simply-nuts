@@ -209,7 +209,7 @@ export default function HomePage() {
       <header className="topbar" aria-label="Business contact">
         <span>Chanhassen, Minnesota</span>
         <span>1-888-449-6887</span>
-        <span>Family-run since 1987</span>
+        <span>Family-run since 1986</span>
       </header>
 
       <main>
@@ -217,7 +217,7 @@ export default function HomePage() {
         <section className="hero-shell" data-reveal>
           <div className="hero-copy-column">
             <img className="logo-lockup" src="/brand/logo-main.png" alt="Simply Nuts and More" />
-            <p className="eyebrow">Family-crafted in Minnesota since 1987</p>
+            <p className="eyebrow">Family-crafted in Minnesota since 1986</p>
             <h1>Freshly roasted nuts, mixes &amp; chocolates — the good stuff, by the pound.</h1>
             <p>
               Small-batch roasted and hand-mixed in Chanhassen, Minnesota, then shipped fresh to your door.
@@ -292,7 +292,7 @@ export default function HomePage() {
 
         {/* ── Trust strip ── */}
         <section className="trust-strip" data-reveal aria-label="Why shop with us">
-          <div><strong>37 Years</strong><span>Family-run since 1987</span></div>
+          <div><strong>40 Years</strong><span>Family-run since 1986</span></div>
           <div><strong>State Fair Famous</strong><span>A Minnesota tradition</span></div>
           <div><strong>Roasted to Order</strong><span>Small-batch, never stale</span></div>
           <div><strong>Shipped Fresh</strong><span>From Chanhassen, MN</span></div>
@@ -354,9 +354,9 @@ export default function HomePage() {
           </div>
           <div className="heritage-copy">
             <p className="eyebrow">Our story</p>
-            <h2 id="heritage-heading">37 years of family, roasting, and "just one more."</h2>
+            <h2 id="heritage-heading">40 years of family, roasting, and "just one more."</h2>
             <p>
-              Simply Nuts &amp; More started as a family business in 1987, and we still roast and mix
+              Simply Nuts &amp; More started as a family business in 1986, and we still roast and mix
               everything in small batches right here in Chanhassen, Minnesota. If you've wandered the
               Minnesota State Fair, there's a good chance you've followed your nose to our booth — we've
               been a fair favorite for nearly four decades.

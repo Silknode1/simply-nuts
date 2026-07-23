@@ -2,11 +2,76 @@
 
 /* --- infinite client-logo marquee ---------------------------------------- */
 .logo-marquee {
+  position: relative;
+  width: 100%;
+}
+
+.logo-marquee__label {
+  margin: 0 0 0.85rem;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #a8815a;
+}
+
+.logo-marquee__viewport {
   overflow: hidden;
   position: relative;
+  padding: 0.5rem 0;
   /* soft fade at the rails so logos enter/exit gracefully */
   -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
   mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
+.logo-marquee__logo {
+  height: 2.5rem;
+  width: auto;
+  opacity: 0.72;
+  filter: grayscale(1);
+}
+
+.logo-marquee__wordmark {
+  font-family: var(--font-display, serif);
+  font-size: clamp(1.05rem, 1.6vw, 1.4rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  user-select: none;
+  color: #8b5529;
+  opacity: 0.75;
+}
+
+/* --- glass overlay variant: a translucent band that rides OVER content ---- */
+.logo-marquee--glass {
+  padding: 1.15rem 0 1.25rem;
+  background:
+    linear-gradient(to bottom, rgba(255, 244, 214, 0.10), rgba(255, 244, 214, 0) 55%),
+    rgba(42, 24, 9, 0.42);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-sat, 1.45));
+  backdrop-filter: blur(var(--glass-blur, 16px)) saturate(var(--glass-sat, 1.45));
+  /* hairline top+bottom rules instead of a full border — reads as a band */
+  border-top: 1px solid rgba(232, 192, 74, 0.28);
+  border-bottom: 1px solid rgba(232, 192, 74, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 244, 214, 0.16);
+}
+
+.logo-marquee--glass .logo-marquee__label { color: #e8c04a; }
+
+.logo-marquee--glass .logo-marquee__wordmark {
+  color: #f5efe3;
+  opacity: 0.9;
+  text-shadow: 0 1px 10px rgba(31, 22, 12, 0.5);
+}
+
+.logo-marquee--glass .logo-marquee__logo {
+  filter: grayscale(1) brightness(2.4);
+  opacity: 0.85;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .logo-marquee--glass { background: rgba(31, 22, 12, 0.72); }
 }
 
 .logo-marquee__track {
@@ -34,7 +99,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .logo-marquee {
+  .logo-marquee__viewport {
     -webkit-mask-image: none;
     mask-image: none;
   }
