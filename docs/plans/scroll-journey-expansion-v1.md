@@ -243,13 +243,117 @@ brand-src/journey/<act>/       ← masters (NEVER under dist/)
 
 ---
 
-## Open questions
+---
 
-1. **Scroll budget** — how long is too long? Would you rather have 5 tight acts or 3 rich ones?
-2. **Fair seasonality** — always-on, or a seasonal variant outside August?
-3. **Reference photography** — do you have real photos of the Fair booth, the workshop, and
-   the Epilog engravers? Real reference makes the generated scenes look like *your* business
-   rather than generic stock.
-4. **Act IV realism** — should the gift line depict your actual workflow/equipment, or stay
-   stylised?
-5. **Deep links** — should acts be linkable (`/#fair`, `/#gifting`) for campaigns and email?
+## Part 5 — Answers + real reference assets (2026-07-21)
+
+Owner supplied `SimplyNutsIMG.zip` (25 files). Masters now live in
+`apps/prototype-web/brand-src/reference/` (three oversized print files were downscaled to
+2400px — the 48×28.8" poster alone was 56 MB).
+
+### What we now have — and what it unlocks
+
+| Asset | Unlocks |
+|---|---|
+| `MN State Fair Background.PNG` / `Banner` / `Outline No Text` | **Act III backdrop, already drawn.** Flat blue vector skyline: ferris wheel, grandstand, Space Tower, sky-ride gondolas, giant slide, roller coaster, the arch sign, livestock, crowd, fireworks |
+| `State fair booth.JPG` (+ 2, 3, 4) | **Act III hero — the real booth.** Signature wooden barrels w/ brown lids, logo cart fronts, "FREE SAMPLES" Chippy signs, red *Cinnamon Almonds* banners, Blue Ribbon 72 |
+| `Woodenbox 16/32/64/96oz`, `Bamboo Containers` | **Act IV product + corporate gallery.** Real engraved lids, sliding-lid birch boxes, cellophane nut bags w/ oval label |
+| `Epilog Fusion Maker 70w`, `Used-Epilog-Inside`, `epilog-fusion-maker-12` | **Act IV station 2** — the actual engraver, not a generic machine |
+| `Fun Corporate Serious Style Guide (8).png` | Brand lockup: chunky brown wordmark w/ gold outline, "& More" in gold script, 3D Chippy, blue engraver |
+| `Simply Nuts Free Samples`, `Blue Ribbon Coupon book`, `Main Banner`, `Poster` | Signage/props for Act III set dressing |
+
+### 🎨 Art-direction unlock: keep the Fair blue
+
+The supplied Fair skyline is **monochrome blue** while the journey palette is warm
+wood/gold/cream. The instinct is to recolour it — **don't.** Blue reads as *dusk*, and if
+the backdrop stays cool while the **Simply Nuts booth glows warm gold** in the foreground,
+you get complementary contrast that makes the booth the unmistakable hero of the frame.
+Cool distance, warm welcome. It also keeps the Fair visually distinct from the orchard and
+workshop acts, so the journey has tonal variety instead of five golden-hour scenes in a row.
+
+Layer split for Act III, straight from the supplied vector:
+
+| Plane | Content |
+|---|---|
+| Sky (−3) | dusk gradient + fireworks (already separate elements in the art) |
+| Far (−2) | Space Tower, grandstand, **ferris wheel — rotate this in code** |
+| Mid (−1) | arch sign "MINNESOTA STATE FAIR", sky-ride gondolas (drift along the cable) |
+| Hero (0) | **the real booth**, warm-lit — barrels, banners, FREE SAMPLES signs, steam off the kettle |
+| Near (+0.8) | crowd + livestock silhouettes crossing frame, soft-focus |
+
+### ⚠️ Client logos — real ones found, permission needed
+
+`Woodenbox 32oz.JPEG` shows finished gifts engraved for **K2 Capital Group**,
+**Orijin Stone**, and **Motorwerks BMW**. That's enough to replace the placeholder
+wordmarks in `LogoMarquee.tsx` — **but get written permission first.** Showing past-work
+*photography* is normal; presenting client marks as an endorsement logo-wall is a different
+claim, and BMW in particular polices its roundel aggressively. Recommended: ask the three
+for logo-usage sign-off; until then run the marquee on photos of the engraved lids rather
+than extracted logos (arguably more persuasive anyway — it shows craft, not just names).
+
+### ⚠️ Two Chippys — pick one
+
+The style guide uses a **3D Pixar-style Chippy**; the booth's FREE SAMPLES signs use a
+**flat illustrated Chippy**. Both are in active use. The journey should commit to one
+(recommend the 3D render for the site, since it matches the existing `chippy-laser.webp`
+finale) and treat the flat one as heritage signage inside the Fair act — where it's
+period-correct set dressing rather than an inconsistency.
+
+### Decisions locked
+
+- **Scroll length** — optimise for what looks best; **no "Skip to shop" button** (owner
+  dislikes them). Instead: keep acts tight (~250–350% each), make the glass nav's
+  **Shop Now** permanently available — it already is — and let that be the escape hatch.
+  A persistent act-progress indicator is a nicer alternative if wayfinding is needed.
+- **Fair act** — **always-on**, with holiday additions layered in seasonally (garland on the
+  booth, snow, a holiday-lit variant of the arch sign).
+- **Act IV** — use the **real** Epilog machines and real boxes; we have the reference.
+
+### Research: corporate gifting positioning (Jul 2026)
+
+Market context worth putting in the copy deck:
+- Corporate gifting is a **~$957B market in 2026**, projected ~$1.31T by 2030
+- **55%** of organisations report higher client retention from strategic gifting; **43%**
+  cite retention as their primary reason to gift
+- **89%** report higher ROI from *personalised/customised* gifts vs generic — this is
+  precisely Simply Nuts' wedge (laser-engraved = personalised by definition)
+- Personalisation is the **#1 named 2026 trend**
+
+**Positioning implication:** lead the corporate page with *retention*, not *holiday*. The
+buyer's job-to-be-done is "keep my clients," and the data says personalised gifts win that.
+Headline direction: "The gift they keep on their desk" / "Client retention, hand-roasted."
+
+**Hashtag / keyword sets** (Instagram + LinkedIn):
+
+- *Core:* `#corporategifts` `#corporategifting` `#customgifts` `#personalizedgifts`
+  `#businessgifts` `#clientgifts` `#corporategiftideas`
+- *Craft:* `#laserengraved` `#laserengraving` `#custommade` `#engravedgifts` `#woodengraving`
+- *Product:* `#nuts` `#gourmetgifts` `#giftbox` `#holidaygifts`
+- *Local/heritage:* `#mnstatefair` `#minnesotamade` `#chanhassen` `#shoplocalmn`
+- *Long-tail (low volume, high intent — best for LinkedIn + SEO pages):*
+  `#uniquecustomerretentiongift` `#corporategiftsforclients` `#clientappreciation`
+  `#employeeappreciationgifts`
+
+Note the split: broad tags (`#gifts`, `#gift`) are far too saturated to convert — the
+**long-tail + local** sets are where a 37-year Minnesota maker actually wins.
+
+### Deep links (revised recommendation)
+
+Worth doing, and cheap: give each act an anchor (`/#orchard`, `/#fair`, `/#gifting`) so
+email/social campaigns can drop people at the right beat — e.g. a `#mnstatefair` post links
+straight to the Fair act, a LinkedIn retention post lands on the gift line. Requires the act
+manager to support "jump to act" (scroll to that act's pin offset) rather than forcing a
+scroll from the top.
+
+---
+
+## Remaining open questions
+
+1. **Client logo permission** — do you want to approach K2 Capital, Orijin Stone and
+   Motorwerks BMW, or run the marquee on engraved-lid photography instead?
+2. **Chippy consistency** — commit to the 3D Chippy sitewide?
+3. **Booth setting** — the real booth sits under a concrete pavilion (numbered bays). Depict
+   it accurately, or take licence and place it in the open-air midway for a prettier frame?
+4. **Act count** — with real assets in hand, the Fair and Gift Line are clearly the two
+   strongest. Worth considering **4 acts** (fold the Field into the orchard→fair transition)
+   so nothing feels like filler.
