@@ -347,6 +347,77 @@ scroll from the top.
 
 ---
 
+---
+
+## Part 6 — The site scrape (2026-07-21): a better narrative spine
+
+Scraped `simplynutsandmore.com` → full findings in **`docs/BRAND_FACTS_FROM_SITE.md`**.
+Three things change the plan.
+
+### 🐿️ 1. The chipmunk is the origin story — not decoration
+
+**The Secret Peanuts:** Grandpa Carney was perfecting a peanut brittle recipe one winter
+evening. He stepped out for firewood; a **chipmunk** got in, spilled the Virginia
+red-skinned peanuts **into the mixing bowl**, and fled with full cheeks. What came out was
+accidental **butter toffee peanuts** — the signature product to this day. He left a batch
+outside his door for the chipmunk every year after.
+
+So: **the chipmunk invented the best-seller.** Chippy, the critters already running around
+the island, the word "Secret," and the top product all trace to one story.
+
+**Recommendation — promote the chipmunk to narrator.** Instead of ambient wildlife, the
+critter *leads* the journey: it darts ahead at each act transition, and the journey opens on
+a short **Act 0 — the cottage** (snowy window, warm lamp, the spill) before lifting to the
+orchard. That turns a pretty parallax demo into a story with a protagonist, and it makes the
+existing `ChipmunkChase` choreography load-bearing rather than ornamental.
+
+### 📅 2. "Where's the Nut Guy?" is a real, dated schedule
+
+The legacy site has a `/where-is-the-nut-guy/` page. Captured as data in
+**`apps/prototype-web/src/data/events.ts`** — 25 published **Canterbury Park** (Shakopee)
+appearances across Jun–Sep 2026, with `upcomingEvents()` and `formatEventDate()` helpers.
+
+This is the perfect closing beat, and it's *better* than a generic "shop" ending because it's
+proof of life: a real business, at a real place, this weekend.
+
+**Design — "Where's the Nut Guy?" panel** (glass card, same language as `FeaturedHarvest`):
+
+```
+WHERE'S THE NUT GUY?
+Jul 22–23   Canterbury Park · Shakopee, MN
+Jul 25–26   Canterbury Park · Shakopee, MN
+Jul 30      Canterbury Park · Shakopee, MN
+                                   [ See full schedule ]
+```
+
+Place it **beside the featured products in the final act** — commerce on one side, "come see
+us in person" on the other. It also gives the Fair act a natural hotspot target.
+
+⚠️ The **2026 State Fair dates are NOT published** on their page — left commented out in
+`events.ts` rather than guessed. Owner needs to confirm before it ships.
+
+### 📊 3. Numbers and voice worth putting on the page
+
+- **225+ shows a year** · **~96% repeat customers** · founded **1986** at an art fair that had
+  no good food — the origin of the whole show-circuit model
+- **"Made fresh to order — never pre-roasted."** A real operational differentiator
+- Roasting philosophy, owner verbatim: *"temperature is probably the most important factor"*
+- Public testimonials name **Honeywood Builders**, **VAA LLC**, **St. Anthony Kiwanis Club** —
+  safer social proof than the engraved client logos, since the business already publishes them
+
+### ⚠️ 4. Factual error in our live copy
+
+Their About page says **founded 1986 by Chris Carney**. Our site says **"1987 / 37 years"** in
+**13 places**. In 2026 the correct figure is **40 years**. Needs owner confirmation (1986
+started vs 1987 incorporated?), then a one-pass fix. "40 years" is the stronger number.
+
+### Also missing from the new site
+
+`/gift-certificates/` exists on the legacy site and has no equivalent on ours — possible
+revenue gap worth a look.
+
+---
+
 ## Remaining open questions
 
 1. **Client logo permission** — do you want to approach K2 Capital, Orijin Stone and
