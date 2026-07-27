@@ -92,36 +92,73 @@ const CRITICAL_COUNT = 2 + TREES.length;
  * pose at |x| ≈ 7-8 is deliberately half off-screen — that's the "poking out"
  * read. `op` keeps it faint over text-heavy rooms so it never fights the copy.
  */
-type Pose = { t: number; x: number; y: number; s: number; op: number; rot: number };
+export type IslandLane = 'left' | 'right' | 'top';
 
-const TRAVEL: Pose[] = [
-  { t: 0.00, x: -2.7, y: -1.3, s: 0.90, op: 1.00, rot: 0.00 }, // leaving the hero, parked left
-  { t: 0.09, x: 5.9, y: 2.0, s: 0.40, op: 0.85, rot: -0.10 }, // darts up to the top-right
-  { t: 0.22, x: 7.9, y: 2.6, s: 0.32, op: 0.45, rot: -0.16 }, // drifts further out, mostly off-frame
-  { t: 0.34, x: -6.9, y: 1.5, s: 0.50, op: 0.80, rot: 0.12 }, // sweeps the full width to the left
-  { t: 0.47, x: -8.2, y: -1.6, s: 0.44, op: 0.50, rot: 0.18 }, // sinks low-left, just poking in
-  { t: 0.60, x: 7.4, y: -2.3, s: 0.38, op: 0.48, rot: -0.14 }, // swings low-right past the clients band
-  { t: 0.73, x: -5.6, y: 2.5, s: 0.48, op: 0.62, rot: 0.10 }, // rises upper-left over the studio
-  { t: 0.88, x: 0.4, y: 2.7, s: 0.60, op: 0.88, rot: 0.02 }, // drifts to top-centre, growing again
-  { t: 1.00, x: 0.0, y: 5.6, s: 0.74, op: 0.00, rot: 0.00 }, // lifts up and off the top of the page
-];
+type Pose = { x: number; y: number; s: number; op: number; rot: number };
 
-/** Sample the flight path at travel progress t, easing between keyframes. */
-function samplePose(t: number): Omit<Pose, 't'> {
-  const c = clamp(t, 0, 1);
-  let i = 0;
-  while (i < TRAVEL.length - 2 && c > TRAVEL[i + 1].t) i++;
-  const a = TRAVEL[i];
-  const b = TRAVEL[i + 1];
-  const span = b.t - a.t;
-  const k = smooth(span > 0 ? clamp((c - a.t) / span, 0, 1) : 0);
-  return {
-    x: lerp(a.x, b.x, k),
-    y: lerp(a.y, b.y, k),
-    s: lerp(a.s, b.s, k),
-    op: lerp(a.op, b.op, k),
-    rot: lerp(a.rot, b.rot, k),
-  };
+/**
+ * Where the island sits while a given room is on screen. Each room reserves a
+ * matching empty corridor in its layout (see `.lane--*` in journey.css), so the
+ * island travels through a real gap in the page rather than floating on top of
+ * the copy. It stays close to fully opaque throughout — you should always be
+ * able to see the orchard working.
+ */
+const LANE_POSE: Record<IslandLane, Pose> = {
+  right: { x: 5.4, y: 0.4, s: 0.58, op: 0.98, rot: -0.05 },
+  left: { x: -5.4, y: 0.4, s: 0.58, op: 0.98, rot: 0.05 },
+  top: { x: 0.2, y: 2.9, s: 0.44, op: 0.92, rot: 0.0 },
+};
+
+/** Pose the moment the hero beat ends — parked left, still large. */
+const EXIT_POSE: Pose = { x: -2.7, y: -1.3, s: 0.9, op: 1, rot: 0 };
+/** Pose past the last room — rises and clears the top of the page. */
+const LIFTOFF_POSE: Pose = { x: 0.2, y: 5.8, s: 0.7, op: 0, rot: 0 };
+
+const mixPose = (a: Pose, b: Pose, k: number): Pose => ({
+  x: lerp(a.x, b.x, k),
+  y: lerp(a.y, b.y, k),
+  s: lerp(a.s, b.s, k),
+  op: lerp(a.op, b.op, k),
+  rot: lerp(a.rot, b.rot, k),
+});
+
+type LaneAnchor = { center: number; side: IslandLane };
+
+/**
+ * Sample the flight path from the REAL positions of the lane anchors in the
+ * document, rather than from guessed scroll percentages. The island is always
+ * heading to (or sitting in) the corridor of whichever room is nearest the
+ * middle of the viewport, so the choreography stays correct no matter how the
+ * rooms' heights change.
+ */
+function poseFromLanes(anchors: LaneAnchor[], focus: number): Pose {
+  if (anchors.length === 0) return EXIT_POSE;
+  const first = anchors[0];
+  const last = anchors[anchors.length - 1];
+
+  // approaching the first room: glide out of the hero pose
+  if (focus <= first.center) {
+    const span = Math.max(first.center - (first.center - window.innerHeight), 1);
+    const k = smooth(clamp((focus - (first.center - window.innerHeight)) / span, 0, 1));
+    return mixPose(EXIT_POSE, LANE_POSE[first.side], k);
+  }
+  // past the last room: lift away
+  if (focus >= last.center) {
+    const span = Math.max(window.innerHeight * 1.2, 1);
+    const k = smooth(clamp((focus - last.center) / span, 0, 1));
+    return mixPose(LANE_POSE[last.side], LIFTOFF_POSE, k);
+  }
+  // between two rooms: cross from one corridor to the next
+  for (let i = 0; i < anchors.length - 1; i++) {
+    const a = anchors[i];
+    const b = anchors[i + 1];
+    if (focus >= a.center && focus <= b.center) {
+      const span = Math.max(b.center - a.center, 1);
+      const k = smooth(clamp((focus - a.center) / span, 0, 1));
+      return mixPose(LANE_POSE[a.side], LANE_POSE[b.side], k);
+    }
+  }
+  return LANE_POSE[last.side];
 }
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -285,7 +322,6 @@ function MaturingTree({
   onReady: () => void;
 }) {
   const invalidate = useThree((s) => s.invalidate);
-  const hotspotEl = useRef<HTMLAnchorElement>(null);
   const groupEl = useRef<THREE.Group>(null);
   const shadowEl = useRef<THREE.Mesh>(null);
   const shadowMat = useRef<THREE.MeshBasicMaterial>(null);
@@ -380,7 +416,6 @@ function MaturingTree({
     const local = clamp((p - a) / (b - a), 0, 1);
     const f = clamp(Math.round(local * (t.frames - 1)), 0, t.frames - 1);
     if (f !== rt.current.cur && rt.current.imgs[f]) drawFrame(f);
-    if (hotspotEl.current) hotspotEl.current.classList.toggle('on', local >= 0.88);
     // maturation deepens the tree's ground shadow; scroll shifts it — the sun moving
     if (shadowMat.current) shadowMat.current.opacity = 0.1 + 0.3 * local;
     if (shadowEl.current) shadowEl.current.position.x = w * lerp(-0.06, 0.12, smooth(p));
@@ -403,10 +438,6 @@ function MaturingTree({
     groupEl.current.scale.set(s * pulse, s * pulse * rustle, s * pulse);
   });
 
-  // hotspot anchor: same stage % as the 2D version (left + w*0.52, top + h*0.3), now relative to base pivot
-  const hx = ((t.w * 0.02) / 100) * STAGE_W;
-  const hy = h * 0.7;
-
   return (
     <group ref={groupEl} position={[x * s, yBottom * s, t.z]} scale={s}>
       {/* soft ground shadow, kept just in front of the surface plane */}
@@ -420,15 +451,39 @@ function MaturingTree({
         <planeGeometry args={[w, h]} />
         <meshBasicMaterial map={tex} alphaMap={feather} transparent depthWrite={false} toneMapped={false} />
       </mesh>
-      {t.shop && (
-        <Html position={[hx, hy, 0.01]} center wrapperClass="fih__hotspot-wrap">
-          <a ref={hotspotEl} className="fih__hotspot" href={t.href} target="_blank" rel="noopener noreferrer">
-            <span className="fih__dot" />
-            {t.label}
-          </a>
-        </Html>
-      )}
+      {/* The per-tree "Shop <nut>" pills were replaced by ONE island sign
+          (see <IslandSign/>) — six competing labels cluttered the orchard. */}
     </group>
+  );
+}
+
+/**
+ * IslandSign — the orchard's ONE shop sign.
+ * Anchored to the island so it travels with it. Fades in once the harvest has
+ * meaningfully ripened, and stays a single clear destination instead of six
+ * competing "Shop <nut>" pills.
+ */
+function IslandSign({ progressRef }: { progressRef: React.MutableRefObject<number> }) {
+  const el = useRef<HTMLAnchorElement>(null);
+
+  useFrame(() => {
+    if (!el.current) return;
+    el.current.classList.toggle('on', progressRef.current >= 0.3);
+  });
+
+  return (
+    <Html position={[0, 3.15, 0.36]} center wrapperClass="fih__hotspot-wrap">
+      <a
+        ref={el}
+        className="fih__hotspot fih__hotspot--sign"
+        href={SHOP_COLLECTIONS.all}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span className="fih__dot" />
+        Shop the Orchard
+      </a>
+    </Html>
   );
 }
 
@@ -642,11 +697,13 @@ function DriftingLeaves({
 
 /** Bob + sway + scroll-driven sink/tilt/growth on the island group; pointer orbit + scroll dolly on the camera. */
 function IslandRig({
-  progressRef, travelRef, reduced, children,
+  progressRef, travelRef, poseRef, reduced, children,
 }: {
   progressRef: React.MutableRefObject<number>;
   /** 0 while the hero beat runs, then 0→1 across the rest of the page. */
   travelRef: React.MutableRefObject<number>;
+  /** Where the island should sit right now, derived from the rooms' lanes. */
+  poseRef: React.MutableRefObject<Pose>;
   reduced: boolean;
   children: React.ReactNode;
 }) {
@@ -684,10 +741,10 @@ function IslandRig({
     let ps = BASE_S * lerp(1.0, 1.08, e) * lerp(1, 0.9, park);
     let pr = sway * (1 + 1.1 * e);
 
-    // ---- travel: once the hero beat is spent, fly the flight path ----
+    // ---- travel: once the hero beat is spent, ride the rooms' lanes ----
     const tv = travelRef.current;
     if (tv > 0) {
-      const pose = samplePose(tv);
+      const pose = poseRef.current;
       // blend out of the hero pose over the first slice of travel so the
       // hand-off is a continuous glide, not a jump
       const blend = smooth(clamp(tv / 0.06, 0, 1));
@@ -736,6 +793,10 @@ export default function FloatingIslandHero3D() {
   const progressRef = useRef(0);
   /** 0 during the hero beat, then 0→1 across the remaining rooms. */
   const travelRef = useRef(0);
+  /** Live target pose, recomputed from the rooms' reserved lanes. */
+  const poseRef = useRef<Pose>(EXIT_POSE);
+  /** Document-space centre + side of every room that reserves an island lane. */
+  const lanesRef = useRef<LaneAnchor[]>([]);
   const [pending, setPending] = useState(CRITICAL_COUNT);
   const products = useFeaturedProducts();
 
@@ -772,12 +833,36 @@ export default function FloatingIslandHero3D() {
     // is deliberately avoided here — pin state goes stale under Vite HMR, and
     // a fixed stage needs no pinning.)
     let frame = 0;
+
+    // Measure every room that reserves a corridor for the island. Re-measured on
+    // resize (and once after load) so the flight always matches the real layout.
+    const measureLanes = () => {
+      const nodes = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-island-lane]'),
+      );
+      lanesRef.current = nodes
+        .map((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            center: r.top + window.scrollY + r.height / 2,
+            side: (el.dataset.islandLane as IslandLane) || 'right',
+          };
+        })
+        .sort((a, b) => a.center - b.center);
+    };
+
     const read = () => {
       frame = 0;
       const doc = document.documentElement;
       const max = doc.scrollHeight - window.innerHeight;
       if (max <= 0) return;
       const g = clamp(window.scrollY / max, 0, 1);
+      // the island always heads for the corridor of whichever room is nearest
+      // the middle of the viewport
+      poseRef.current = poseFromLanes(
+        lanesRef.current,
+        window.scrollY + window.innerHeight / 2,
+      );
 
       // the hero beat owns the first stretch of the page (its section height);
       // everything after it is travel
@@ -803,10 +888,10 @@ export default function FloatingIslandHero3D() {
       if (backdropRef.current) {
         backdropRef.current.style.opacity = String(1 - smooth(clamp(travel / 0.05, 0, 1)));
       }
-      // the island itself fades to a companion presence over the rooms
+      // the island stays essentially opaque the whole way — it travels through
+      // reserved corridors rather than over the copy, so it never needs hiding
       if (wrapRef.current) {
-        const op = travel > 0 ? samplePose(travel).op : 1;
-        wrapRef.current.style.opacity = String(op);
+        wrapRef.current.style.opacity = String(travel > 0 ? poseRef.current.op : 1);
       }
 
       // Chippy + laser engraver signs off the hero, then clears out for travel
@@ -828,12 +913,20 @@ export default function FloatingIslandHero3D() {
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(read);
     };
+    const onResize = () => {
+      measureLanes();
+      onScroll();
+    };
+    measureLanes();
     read();
+    // images/fonts settling can move the rooms — re-measure shortly after mount
+    const settle = window.setTimeout(onResize, 900);
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', onResize);
     return () => {
+      window.clearTimeout(settle);
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
       if (frame) cancelAnimationFrame(frame);
     };
   }, [reduced]);
@@ -855,7 +948,7 @@ export default function FloatingIslandHero3D() {
             camera={{ fov: CAM_FOV, near: 1, far: 60, position: [0, 0, CAM_DIST] }}
           >
             <ContactShadow progressRef={progressRef} shadowTex={shadowTex} reduced={reduced} />
-            <IslandRig progressRef={progressRef} travelRef={travelRef} reduced={reduced}>
+            <IslandRig progressRef={progressRef} travelRef={travelRef} poseRef={poseRef} reduced={reduced}>
               {!reduced && (
                 <DriftingLeaves leafTex={leafTex} count={30} zBase={-1.1} zSpread={0.35} tint="green" progressRef={progressRef} />
               )}
@@ -879,6 +972,8 @@ export default function FloatingIslandHero3D() {
                   onReady={markReady}
                 />
               ))}
+              {/* one sign for the whole orchard */}
+              <IslandSign progressRef={progressRef} />
               {/* ambient wildlife: two chipmunks chasing across the moss —
                   procedural choreography, hidden entirely on reduced motion */}
               {!reduced && <ChipmunkChase progressRef={progressRef} shadowTex={shadowTex} />}

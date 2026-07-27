@@ -20,12 +20,18 @@
   position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(120% 90% at 60% 30%, #efe9dc 0%, #ddd7c9 55%, #cfc8b8 100%);
 }
-/* once the island is flying it's scenery, not a shopping surface — the
-   hotspot pills belong to the hero beat only */
-.fih--flying .fih__hotspot {
-  opacity: 0 !important;
-  pointer-events: none !important;
+/* The island's ONE shop sign — bigger and warmer than the old per-tree pills,
+   and it stays with the island for the whole journey (it's the standing
+   invitation to the store, not a hero-only flourish). */
+.fih__hotspot--sign {
+  font-size: clamp(13px, 1.05vw, 16px);
+  padding: 0.6rem 1.15rem;
+  background: linear-gradient(to bottom, rgba(58, 34, 15, 0.94), rgba(31, 22, 12, 0.94));
+  border-color: rgba(232, 192, 74, 0.75);
+  box-shadow: 0 10px 30px rgba(31, 22, 12, 0.45), 0 0 0 1px rgba(232, 192, 74, 0.12);
+  letter-spacing: 0.01em;
 }
+.fih__hotspot--sign:hover { background: #7a3b18; }
 
 /* interactive children opt back in */
 .fih__hotspot-wrap, .fih__hotspot, .fih__harvest { pointer-events: auto; }
@@ -47,8 +53,9 @@
 }
 .fih__tree canvas { width: 100%; height: 100%; display: block; }
 
+/* sits clear of the masthead-scale wordmark above it */
 .fih__titles {
-  position: absolute; left: 50%; top: 12%; transform: translateX(-50%);
+  position: absolute; left: 50%; top: clamp(15%, 19vh, 22%); transform: translateX(-50%);
   text-align: center; z-index: 5; pointer-events: none;
   width: max-content; max-width: 92vw;
 }

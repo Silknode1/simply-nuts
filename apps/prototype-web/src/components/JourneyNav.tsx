@@ -1,51 +1,72 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { SHOP_URL } from '../config';
+import './journey-nav.css';
 
 /**
- * JourneyNav — the floating warm-glass nav for the immersive island journey.
- * A single pill panel (blur stays panel-sized, never full-width over the
- * canvas). Secondary links collapse away on small screens; Shop Now stays.
+ * JourneyNav — the floating warm-glass nav for the immersive journey.
+ *
+ * The wordmark is the brand's loudest asset, so it opens LARGE — a proper
+ * masthead over the orchard — and contracts to a still-clearly-legible size as
+ * you scroll, instead of living permanently small. Driven by one rAF-throttled
+ * scroll read writing a single CSS custom property, so it costs nothing.
  */
 export default function JourneyNav() {
+  const nav = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = nav.current;
+    if (!el) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      // 0 at the very top (masthead) → 1 once you're a screen in (compact)
+      const k = reduced
+        ? 1
+        : Math.min(1, window.scrollY / Math.max(window.innerHeight * 0.55, 1));
+      el.style.setProperty('--nav-k', String(k));
+      el.classList.toggle('journey-nav--compact', k > 0.55);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-3 px-3 pointer-events-none">
-      <nav
-        className="glass glass-nav pointer-events-auto flex items-center gap-1.5 sm:gap-3 max-w-full"
-        aria-label="Primary"
-      >
-        <Link
-          to="/"
-          className="flex items-center no-underline shrink-0 pl-1"
-          aria-label="Simply Nuts & More home"
-        >
+    <header ref={nav} className="journey-nav">
+      <nav className="journey-nav__inner glass" aria-label="Primary">
+        <Link to="/" className="journey-nav__brand" aria-label="Simply Nuts & More — home">
           <img
             src="/brand/logo-wordmark.webp"
-            alt="Simply Nuts & More"
-            className="h-8 sm:h-9 w-auto drop-shadow-sm"
+            alt="Simply Nuts &amp; More"
+            className="journey-nav__logo"
             draggable={false}
           />
         </Link>
 
-        <div className="hidden md:flex items-center gap-1">
-          <Link to="/corporate" className="glass-pill text-cream/90 hover:text-gold-300">
+        <div className="journey-nav__links">
+          <Link to="/corporate" className="glass-pill journey-nav__link">
             Corporate Gifting
           </Link>
-          <Link to="/about" className="glass-pill text-cream/90 hover:text-gold-300">
+          <Link to="/about" className="glass-pill journey-nav__link journey-nav__link--wide">
             About
           </Link>
-          <Link to="/contact" className="glass-pill text-cream/90 hover:text-gold-300">
+          <Link to="/contact" className="glass-pill journey-nav__link journey-nav__link--wide">
             Contact
           </Link>
+          <a href={SHOP_URL} className="glass-pill glass-pill--solid journey-nav__shop">
+            Shop Now
+          </a>
         </div>
-
-        {/* compact companion link on small screens */}
-        <Link to="/corporate" className="glass-pill md:hidden text-cream/90 text-sm">
-          Corporate
-        </Link>
-
-        <a href={SHOP_URL} className="glass-pill glass-pill--solid shrink-0">
-          Shop Now
-        </a>
       </nav>
     </header>
   );

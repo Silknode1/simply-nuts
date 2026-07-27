@@ -1,0 +1,82 @@
+/* JourneyNav — masthead-scale wordmark that contracts as you scroll.
+   --nav-k: 0 at the top of the page → 1 once scrolled (set from JS). */
+
+.journey-nav {
+  --nav-k: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  padding: clamp(0.6rem, 1.4vw, 1.1rem) 0.75rem 0;
+  pointer-events: none;
+}
+
+.journey-nav__inner {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.2vw, 1.1rem);
+  max-width: min(96vw, 1180px);
+  border-radius: 999px;
+  /* the panel breathes with the logo so the glass never crowds the wordmark */
+  padding: calc(0.85rem - var(--nav-k) * 0.4rem) calc(1.15rem - var(--nav-k) * 0.4rem);
+  transition: padding 0.25s ease;
+}
+
+.journey-nav__brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+/* THE WORDMARK — opens as a masthead (~112px tall) and settles to a size that
+   is still comfortably readable (~54px), never the old 32px sliver. */
+.journey-nav__logo {
+  height: calc(clamp(64px, 8.2vw, 112px) - var(--nav-k) * clamp(16px, 3.4vw, 54px));
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 3px 14px rgba(31, 22, 12, 0.45));
+  transition: height 0.25s ease;
+  will-change: height;
+}
+
+.journey-nav__links {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.journey-nav__link {
+  color: rgba(245, 239, 227, 0.92);
+  font-size: clamp(0.85rem, 0.95vw, 0.98rem);
+}
+.journey-nav__link:hover { color: #f3dd9a; }
+
+.journey-nav__shop {
+  flex-shrink: 0;
+  font-size: clamp(0.88rem, 0.95vw, 1rem);
+}
+
+/* --- responsive: shed the secondary links before the wordmark shrinks ------ */
+@media (max-width: 1024px) {
+  .journey-nav__link--wide { display: none; }
+}
+
+@media (max-width: 680px) {
+  .journey-nav__link { display: none; }
+  .journey-nav__logo {
+    /* still far larger than before, but sized for a phone masthead */
+    height: calc(clamp(52px, 13vw, 76px) - var(--nav-k) * clamp(14px, 4vw, 28px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-nav__logo,
+  .journey-nav__inner {
+    transition: none;
+  }
+}

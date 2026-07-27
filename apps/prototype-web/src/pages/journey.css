@@ -59,6 +59,27 @@
   z-index: 1;
 }
 
+/* --- island lanes -----------------------------------------------------------
+   The island doesn't float over the copy — the rooms make room for it. Each
+   lane wrapper reserves an empty corridor on one side, and the island flies
+   through that corridor (see LANE_POSE in FloatingIslandHero3D). The reserved
+   space is only claimed on wide viewports; below that the island tucks to a
+   corner and the rooms use their full width. */
+.lane { position: relative; }
+
+/* The corridor is carved out of the room's CONTENT, not the room itself — the
+   section keeps painting its background full-bleed, so the island flies through
+   the room's own colour rather than a hole in the page. */
+@media (min-width: 1100px) {
+  .lane--right :is([class*="__inner"], .corp-inner, .max-w-6xl) {
+    padding-right: min(30vw, 460px);
+  }
+  .lane--left :is([class*="__inner"], .corp-inner, .max-w-6xl) {
+    padding-left: min(30vw, 460px);
+  }
+  /* 'top' rooms keep their full width — the island rides above them */
+}
+
 /* --- shared reveal primitive -----------------------------------------------
    Sections may use .reveal + .is-visible (set by their own IntersectionObserver)
    and --i for a stagger index. Transform/opacity only. */

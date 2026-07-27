@@ -80,22 +80,40 @@ export default function JourneyPage() {
           landscape band so the tone change reads as *travelling* between
           places rather than cutting between panels. Ridge `from`/`to` match
           each room's real edge colour, so the seams are invisible. */}
-      <ProductsSection />
+      {/* Each room declares which side the island travels down (data-island-lane)
+          and reserves a matching empty corridor (.lane--*), so the island flies
+          through a real gap in the layout instead of over the copy. The island
+          measures these anchors directly, so the flight stays correct however
+          the rooms' heights change. Sides alternate so it weaves down the page. */}
+      <div className="lane lane--right" data-island-lane="right">
+        <ProductsSection />
+      </div>
 
       <RidgeDivider variant="pines" from="#fdf8f0" to="#0d240d" label="Into the grove" />
-      <HealthSection />
+      <div className="lane lane--left" data-island-lane="left">
+        <HealthSection />
+      </div>
 
       <RidgeDivider variant="ridge" from="#0b1f0b" to="#2a1809" label="To the workshop" />
-      <CorporateSection />
+      <div className="lane lane--right" data-island-lane="right">
+        <CorporateSection />
+      </div>
 
       <RidgeDivider variant="dunes" from="#241407" to="#1c1208" />
-      <ClientsSection />
+      {/* slim proof band — the island rides above it rather than beside it */}
+      <div className="lane" data-island-lane="top">
+        <ClientsSection />
+      </div>
 
       <RidgeDivider variant="ridge" from="#22150c" to="#0c0704" label="The design floor" />
-      <DesignToolSection />
+      <div className="lane lane--left" data-island-lane="left">
+        <DesignToolSection />
+      </div>
 
       <RidgeDivider variant="skyline" from="#090603" to="#070f21" label="Come find us" />
-      <ScheduleSection />
+      <div className="lane" data-island-lane="top">
+        <ScheduleSection />
+      </div>
     </div>
   );
 }
