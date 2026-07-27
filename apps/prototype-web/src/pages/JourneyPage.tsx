@@ -5,6 +5,7 @@ import CorporateSection from '../sections/CorporateSection';
 import ClientsSection from '../sections/ClientsSection';
 import DesignToolSection from '../sections/DesignToolSection';
 import ScheduleSection from '../sections/ScheduleSection';
+import RidgeDivider from '../components/RidgeDivider';
 import './journey.css';
 
 // three.js stays out of the shared bundle — the orchard act is the only 3D on the page
@@ -75,12 +76,25 @@ export default function JourneyPage() {
 
       {/* The rooms. Order is deliberate: appetite → wellbeing → the pitch →
           proof → the tool → come find us. Tone alternates light/dark so no two
-          adjacent rooms feel the same. */}
+          adjacent rooms feel the same, and every seam is a parallaxing
+          landscape band so the tone change reads as *travelling* between
+          places rather than cutting between panels. Ridge `from`/`to` match
+          each room's real edge colour, so the seams are invisible. */}
       <ProductsSection />
+
+      <RidgeDivider variant="pines" from="#fdf8f0" to="#0d240d" label="Into the grove" />
       <HealthSection />
+
+      <RidgeDivider variant="ridge" from="#0b1f0b" to="#2a1809" label="To the workshop" />
       <CorporateSection />
+
+      <RidgeDivider variant="dunes" from="#241407" to="#1c1208" />
       <ClientsSection />
+
+      <RidgeDivider variant="ridge" from="#22150c" to="#0c0704" label="The design floor" />
       <DesignToolSection />
+
+      <RidgeDivider variant="skyline" from="#090603" to="#070f21" label="Come find us" />
       <ScheduleSection />
     </div>
   );

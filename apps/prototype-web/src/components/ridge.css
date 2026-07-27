@@ -1,0 +1,64 @@
+/* RidgeDivider — parallax depth band between two content rooms. */
+
+.ridge {
+  position: relative;
+  width: 100%;
+  height: clamp(150px, 20vh, 260px);
+  overflow: hidden;
+  isolation: isolate;
+  /* the band travels from the room above's tone into the room below's */
+  background: linear-gradient(to bottom, var(--ridge-from, #24160f), var(--ridge-to, #24160f));
+  line-height: 0; /* kill descender gap under the inline svg */
+}
+
+/* a soft atmospheric haze sitting behind the silhouettes — this is what makes
+   the far layers read as *distant* rather than just small */
+.ridge__sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 50% 100%, rgba(255, 244, 214, 0.16), transparent 62%),
+    radial-gradient(80% 60% at 22% 90%, rgba(232, 192, 74, 0.10), transparent 70%);
+  pointer-events: none;
+}
+
+.ridge__art {
+  position: absolute;
+  inset: auto 0 0 0;
+  width: 108%;              /* overscan so parallax never exposes an edge */
+  left: -4%;
+  height: 100%;
+  display: block;
+}
+
+.ridge__label {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(245, 239, 227, 0.5);
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* the fairground seam gets a warm dusk glow behind its silhouette */
+.ridge--skyline .ridge__sky {
+  background:
+    radial-gradient(90% 70% at 50% 100%, rgba(232, 192, 74, 0.28), transparent 66%),
+    radial-gradient(60% 50% at 74% 92%, rgba(196, 94, 32, 0.20), transparent 72%);
+}
+
+/* the forest seam sits under a cooler, greener haze */
+.ridge--pines .ridge__sky {
+  background: radial-gradient(110% 80% at 45% 100%, rgba(122, 176, 105, 0.16), transparent 64%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ridge__art g { transform: none !important; }
+}

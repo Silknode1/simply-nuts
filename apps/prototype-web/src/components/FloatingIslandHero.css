@@ -1,11 +1,35 @@
-/* FloatingIslandHero — scroll-scrubbed maturing island hero */
-.fih { position: relative; }
+/* FloatingIslandHero — the island that travels the whole scroll journey.
+   The section provides the hero runway (its height = the ripening beat); the
+   STAGE is fixed so the island stays on screen for the entire page and flies
+   between the content rooms as a companion. */
+.fih { position: relative; height: 620vh; }
 
 .fih__stage {
-  position: sticky; top: 0; height: 100vh; width: 100%;
+  position: fixed; inset: 0; width: 100%; height: 100vh;
   display: flex; align-items: center; justify-content: center; overflow: hidden;
+  z-index: 30;
+  /* transparent once the hero beat ends — the rooms own the backdrop from there */
+  background: radial-gradient(120% 90% at 60% 30%, #efe9dc 0%, #ddd7c9 55%, #cfc8b8 100%);
+  /* the canvas must never eat clicks meant for the rooms scrolling underneath */
+  pointer-events: none;
+}
+
+/* the stage backdrop dissolves as the island leaves the hero, so the content
+   rooms below become the page's background (opacity driven from JS) */
+.fih__backdrop {
+  position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(120% 90% at 60% 30%, #efe9dc 0%, #ddd7c9 55%, #cfc8b8 100%);
 }
+/* once the island is flying it's scenery, not a shopping surface — the
+   hotspot pills belong to the hero beat only */
+.fih--flying .fih__hotspot {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* interactive children opt back in */
+.fih__hotspot-wrap, .fih__hotspot, .fih__harvest { pointer-events: auto; }
+.fih__harvest:not(.live) { pointer-events: none; }
 
 .fih__wrap {
   position: relative; width: min(96vw, 170vh); aspect-ratio: 16 / 9; will-change: transform;
@@ -64,8 +88,10 @@
 /* The tree billboards carry the footage's neutral-gray backdrop (rgb(198,198,198)
    family) baked in; the 3D stage bg must live in that family or feathered plane
    edges show as gray halos. Slightly warm ramp keeps it on-brand. */
-.fih--r3f .fih__stage {
+.fih--r3f .fih__stage { background: none; }
+.fih--r3f .fih__backdrop {
   background: radial-gradient(120% 90% at 62% 28%, #dbd8d2 0%, #c8c6c0 50%, #b2afa6 100%);
+  will-change: opacity;
 }
 .fih__wrap canvas { display: block; width: 100% !important; height: 100% !important; }
 

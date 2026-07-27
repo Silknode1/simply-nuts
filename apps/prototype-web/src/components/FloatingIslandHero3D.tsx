@@ -79,6 +79,51 @@ const BASE_Y = -1.27;
 // critical assets gating the loader: 2 island layers + 1 first frame per tree
 const CRITICAL_COUNT = 2 + TREES.length;
 
+/**
+ * TRAVEL CHOREOGRAPHY — the island's flight path across the rest of the page.
+ * ---------------------------------------------------------------------------
+ * Once the hero's ripening beat ends, the island stops being a hero and becomes
+ * a COMPANION: it shrinks, sweeps side to side, dips off-frame and pokes back in
+ * at the edges while the content rooms scroll past. Poses are keyed on travel
+ * progress `t` (0 = the moment the hero ends, 1 = the foot of the page) and
+ * lerped between, so the flight reads as one continuous arc rather than steps.
+ *
+ * x/y are world units (the visible stage is roughly x -8..8, y -4.5..4.5), so a
+ * pose at |x| ≈ 7-8 is deliberately half off-screen — that's the "poking out"
+ * read. `op` keeps it faint over text-heavy rooms so it never fights the copy.
+ */
+type Pose = { t: number; x: number; y: number; s: number; op: number; rot: number };
+
+const TRAVEL: Pose[] = [
+  { t: 0.00, x: -2.7, y: -1.3, s: 0.90, op: 1.00, rot: 0.00 }, // leaving the hero, parked left
+  { t: 0.09, x: 5.9, y: 2.0, s: 0.40, op: 0.85, rot: -0.10 }, // darts up to the top-right
+  { t: 0.22, x: 7.9, y: 2.6, s: 0.32, op: 0.45, rot: -0.16 }, // drifts further out, mostly off-frame
+  { t: 0.34, x: -6.9, y: 1.5, s: 0.50, op: 0.80, rot: 0.12 }, // sweeps the full width to the left
+  { t: 0.47, x: -8.2, y: -1.6, s: 0.44, op: 0.50, rot: 0.18 }, // sinks low-left, just poking in
+  { t: 0.60, x: 7.4, y: -2.3, s: 0.38, op: 0.48, rot: -0.14 }, // swings low-right past the clients band
+  { t: 0.73, x: -5.6, y: 2.5, s: 0.48, op: 0.62, rot: 0.10 }, // rises upper-left over the studio
+  { t: 0.88, x: 0.4, y: 2.7, s: 0.60, op: 0.88, rot: 0.02 }, // drifts to top-centre, growing again
+  { t: 1.00, x: 0.0, y: 5.6, s: 0.74, op: 0.00, rot: 0.00 }, // lifts up and off the top of the page
+];
+
+/** Sample the flight path at travel progress t, easing between keyframes. */
+function samplePose(t: number): Omit<Pose, 't'> {
+  const c = clamp(t, 0, 1);
+  let i = 0;
+  while (i < TRAVEL.length - 2 && c > TRAVEL[i + 1].t) i++;
+  const a = TRAVEL[i];
+  const b = TRAVEL[i + 1];
+  const span = b.t - a.t;
+  const k = smooth(span > 0 ? clamp((c - a.t) / span, 0, 1) : 0);
+  return {
+    x: lerp(a.x, b.x, k),
+    y: lerp(a.y, b.y, k),
+    s: lerp(a.s, b.s, k),
+    op: lerp(a.op, b.op, k),
+    rot: lerp(a.rot, b.rot, k),
+  };
+}
+
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -263,21 +308,43 @@ function MaturingTree({
     const W = ctx.canvas.width, H = ctx.canvas.height;
     ctx.clearRect(0, 0, W, H);
     if (t.underfill) {
-      // The almond clips only ever grew ONE side of the crown — the tree
-      // reads lopsided/half-bloomed next to the full round trees. Mirror the
-      // canopy band onto itself: draw a horizontally-flipped copy of the top
-      // ~66% (canopy only, not the trunk/moss), nudged toward the sparse
-      // side, so blossoms fill both sides and it reads as a rounded crown.
-      const canopyH = H * 0.66;
+      // The almond clips only ever grew ONE side of a sparse crown, so next to
+      // the lush trees it reads thin and half-bloomed. Build the canopy up in
+      // three passes, all clipped to the canopy band so the trunk stays single:
+      //   1. a horizontal MIRROR       → fills the bare side of the crown
+      //   2. two scaled/offset copies  → fill the gaps between sparse branches
+      //   3. the real frame on top     → keeps true detail + the one real trunk
+      const canopyH = H * 0.68;
       ctx.save();
       ctx.beginPath();
-      ctx.rect(0, 0, W, canopyH); // clip: canopy band only, spare the trunk
+      ctx.rect(0, 0, W, canopyH);
       ctx.clip();
-      ctx.globalAlpha = 0.92;
+
+      // 1. mirrored crown
+      ctx.save();
+      ctx.globalAlpha = 0.95;
       ctx.translate(W, 0);
-      ctx.scale(-1, 1);            // horizontal mirror
-      ctx.translate(-W * 0.06, 0); // slide the mirrored crown to balance
+      ctx.scale(-1, 1);
+      ctx.translate(-W * 0.06, 0);
       ctx.drawImage(img, 0, 0);
+      ctx.restore();
+
+      // 2. density passes — same art, nudged and rescaled so blossoms
+      //    interleave into the empty space between branches
+      const fills: Array<[number, number, number, number]> = [
+        // [scale, dx (frac of W), dy (frac of H), alpha]
+        [1.1, -0.05, -0.03, 0.55],
+        [0.9, 0.06, 0.02, 0.45],
+      ];
+      for (const [sc, dx, dy, a] of fills) {
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.translate(W * 0.5 + W * dx, canopyH * 0.5 + H * dy);
+        ctx.scale(sc, sc);
+        ctx.translate(-W * 0.5, -canopyH * 0.5);
+        ctx.drawImage(img, 0, 0);
+        ctx.restore();
+      }
       ctx.restore();
     }
     ctx.drawImage(img, 0, 0); // real frame on top — trunk + true detail win
@@ -575,9 +642,11 @@ function DriftingLeaves({
 
 /** Bob + sway + scroll-driven sink/tilt/growth on the island group; pointer orbit + scroll dolly on the camera. */
 function IslandRig({
-  progressRef, reduced, children,
+  progressRef, travelRef, reduced, children,
 }: {
   progressRef: React.MutableRefObject<number>;
+  /** 0 while the hero beat runs, then 0→1 across the rest of the page. */
+  travelRef: React.MutableRefObject<number>;
   reduced: boolean;
   children: React.ReactNode;
 }) {
@@ -606,14 +675,38 @@ function IslandRig({
     // idle life is layered sines; everything gets a little wilder as the
     // harvest ripens (chaos), while the island sinks, tilts and grows
     const chaos = 1 + 0.4 * e;
-    g.position.x = lerp(0, -2.7, park);
-    g.position.y = BASE_Y + (Math.sin(ms / 1400) * 0.12 + Math.sin(ms / 530) * 0.02) * chaos + lerp(0.12, -0.06, e);
-    g.rotation.z = (Math.sin(ms / 2600) * 0.009 + Math.sin(ms / 970) * 0.003) * (1 + 1.1 * e);
+    const bob = (Math.sin(ms / 1400) * 0.12 + Math.sin(ms / 530) * 0.02) * chaos;
+    const sway = Math.sin(ms / 2600) * 0.009 + Math.sin(ms / 970) * 0.003;
+
+    // ---- hero pose (ripening) ----
+    let px = lerp(0, -2.7, park);
+    let py = BASE_Y + bob + lerp(0.12, -0.06, e);
+    let ps = BASE_S * lerp(1.0, 1.08, e) * lerp(1, 0.9, park);
+    let pr = sway * (1 + 1.1 * e);
+
+    // ---- travel: once the hero beat is spent, fly the flight path ----
+    const tv = travelRef.current;
+    if (tv > 0) {
+      const pose = samplePose(tv);
+      // blend out of the hero pose over the first slice of travel so the
+      // hand-off is a continuous glide, not a jump
+      const blend = smooth(clamp(tv / 0.06, 0, 1));
+      px = lerp(px, pose.x, blend);
+      py = lerp(py, pose.y + bob * 0.5, blend);
+      ps = lerp(ps, BASE_S * pose.s, blend);
+      pr = lerp(pr, pose.rot + sway * 1.6, blend);
+    }
+
+    g.position.x = px;
+    g.position.y = py;
+    g.rotation.z = pr;
     g.rotation.x = lerp(0.018, -0.045, e);
-    g.scale.setScalar(BASE_S * lerp(1.0, 1.08, e) * lerp(1, 0.9, park));
+    g.scale.setScalar(ps);
     // damped pointer orbit + a slow dolly-in with scroll — the journey draws you closer
-    const tx = pointer.current.x * 2.6;
-    const ty = -pointer.current.y * 1.4;
+    // (pointer orbit eases off during travel so the flight path stays readable)
+    const orbit = 1 - smooth(clamp(travelRef.current / 0.1, 0, 1)) * 0.75;
+    const tx = pointer.current.x * 2.6 * orbit;
+    const ty = -pointer.current.y * 1.4 * orbit;
     const tz = CAM_DIST - 0.5 * e;
     camera.position.x += (tx - camera.position.x) * 0.06;
     camera.position.y += (ty - camera.position.y) * 0.06;
@@ -638,7 +731,11 @@ export default function FloatingIslandHero3D() {
   const titlesRef = useRef<HTMLDivElement>(null);
   const finaleRef = useRef<HTMLDivElement>(null);
   const harvestRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
+  /** 0 during the hero beat, then 0→1 across the remaining rooms. */
+  const travelRef = useRef(0);
   const [pending, setPending] = useState(CRITICAL_COUNT);
   const products = useFeaturedProducts();
 
@@ -669,48 +766,87 @@ export default function FloatingIslandHero3D() {
       }
       return;
     }
-    const st = ScrollTrigger.create({
-      trigger: sectionRef.current!,
-      start: 'top top',
-      end: '+=600%', // long pin = slow ripening + room for the closing shop beat
-      pin: stageRef.current!,
-      scrub: 0.9,
-      onUpdate: (self) => {
-        const p = self.progress;
-        progressRef.current = p;
-        const e = smooth(p);
-        // color journey: neutral -> cool mist (mid) -> golden hour (end);
-        // the titles hand the stage over to the island as the story unfolds
-        if (glowRef.current) glowRef.current.style.opacity = String(e);
-        if (mistRef.current) mistRef.current.style.opacity = String(Math.sin(Math.PI * p) * 0.85);
-        if (titlesRef.current) titlesRef.current.style.opacity = String(1 - 0.85 * e);
-        // Chippy + laser engraver signs off the journey as the scroll lands
-        if (finaleRef.current) {
-          const k = clamp((p - 0.84) / 0.13, 0, 1);
-          finaleRef.current.style.opacity = String(k);
-          finaleRef.current.style.transform = `translateY(${(1 - k) * 36}px)`;
-        }
-        // the featured harvest blooms in as the island parks left
-        if (harvestRef.current) {
-          const k = clamp((p - 0.84) / 0.12, 0, 1);
-          harvestRef.current.style.opacity = String(k);
-          harvestRef.current.style.setProperty('--harvest-k', String(k));
-          harvestRef.current.classList.toggle('on', k > 0.12);
-          harvestRef.current.classList.toggle('live', k > 0.5);
-        }
-      },
-    });
-    return () => st.kill();
+    // ONE global scroll driver for the whole page. The stage is position:fixed,
+    // so the island rides along for the entire journey; the hero section's own
+    // height is just the runway for the ripening beat. (A pinned ScrollTrigger
+    // is deliberately avoided here — pin state goes stale under Vite HMR, and
+    // a fixed stage needs no pinning.)
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - window.innerHeight;
+      if (max <= 0) return;
+      const g = clamp(window.scrollY / max, 0, 1);
+
+      // the hero beat owns the first stretch of the page (its section height);
+      // everything after it is travel
+      const heroPx = Math.max(sectionRef.current?.offsetHeight ?? 0, window.innerHeight);
+      const heroEnd = clamp((heroPx - window.innerHeight) / max, 0.02, 0.98);
+
+      const p = clamp(g / heroEnd, 0, 1);
+      const travel = clamp((g - heroEnd) / Math.max(1 - heroEnd, 0.001), 0, 1);
+      progressRef.current = p;
+      travelRef.current = travel;
+
+      const e = smooth(p);
+      // color journey: neutral -> cool mist (mid) -> golden hour (end);
+      // the titles hand the stage over to the island as the story unfolds
+      if (glowRef.current) glowRef.current.style.opacity = String(e * (1 - travel));
+      if (mistRef.current) mistRef.current.style.opacity = String(Math.sin(Math.PI * p) * 0.85 * (1 - travel));
+      if (titlesRef.current) titlesRef.current.style.opacity = String((1 - 0.85 * e) * (1 - smooth(clamp(travel / 0.04, 0, 1))));
+
+      // flying = scenery mode: no hotspots, no stage backdrop
+      sectionRef.current?.classList.toggle('fih--flying', travel > 0.02);
+      // the stage's own backdrop dissolves as the island leaves the hero, so the
+      // content rooms below become the page background
+      if (backdropRef.current) {
+        backdropRef.current.style.opacity = String(1 - smooth(clamp(travel / 0.05, 0, 1)));
+      }
+      // the island itself fades to a companion presence over the rooms
+      if (wrapRef.current) {
+        const op = travel > 0 ? samplePose(travel).op : 1;
+        wrapRef.current.style.opacity = String(op);
+      }
+
+      // Chippy + laser engraver signs off the hero, then clears out for travel
+      if (finaleRef.current) {
+        const k = clamp((p - 0.84) / 0.13, 0, 1) * (1 - smooth(clamp(travel / 0.04, 0, 1)));
+        finaleRef.current.style.opacity = String(k);
+        finaleRef.current.style.transform = `translateY(${(1 - k) * 36}px)`;
+      }
+      // the featured harvest blooms in as the island parks left, then hands the
+      // page over to the product room below
+      if (harvestRef.current) {
+        const k = clamp((p - 0.84) / 0.12, 0, 1) * (1 - smooth(clamp(travel / 0.05, 0, 1)));
+        harvestRef.current.style.opacity = String(k);
+        harvestRef.current.style.setProperty('--harvest-k', String(k));
+        harvestRef.current.classList.toggle('on', k > 0.12);
+        harvestRef.current.classList.toggle('live', k > 0.5);
+      }
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, [reduced]);
 
   return (
     <section ref={sectionRef} className="fih fih--r3f">
       <div ref={stageRef} className="fih__stage">
+        <div ref={backdropRef} className="fih__backdrop" aria-hidden="true" />
         <div ref={titlesRef} className="fih__titles">
           <h1>Premium Quality.<span>Hand sourced from across the Globe.</span></h1>
           <p>{reduced ? 'Every branch heavy with harvest.' : 'Scroll to watch the harvest ripen.'}</p>
         </div>
-        <div className="fih__wrap">
+        <div ref={wrapRef} className="fih__wrap">
           <Canvas
             dpr={[1, 2]}
             flat
@@ -719,7 +855,7 @@ export default function FloatingIslandHero3D() {
             camera={{ fov: CAM_FOV, near: 1, far: 60, position: [0, 0, CAM_DIST] }}
           >
             <ContactShadow progressRef={progressRef} shadowTex={shadowTex} reduced={reduced} />
-            <IslandRig progressRef={progressRef} reduced={reduced}>
+            <IslandRig progressRef={progressRef} travelRef={travelRef} reduced={reduced}>
               {!reduced && (
                 <DriftingLeaves leafTex={leafTex} count={30} zBase={-1.1} zSpread={0.35} tint="green" progressRef={progressRef} />
               )}
