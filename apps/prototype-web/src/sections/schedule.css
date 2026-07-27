@@ -1,0 +1,520 @@
+/* ==========================================================================
+   ScheduleSection — "Where's the Nut Guy?"
+   --------------------------------------------------------------------------
+   The one cool room in the journey: Minnesota State Fair at dusk. Deep navy /
+   indigo evening gradient, a warm amber horizon glow along the bottom edge,
+   and gold midway bulbs twinkling at staggered intervals behind the content.
+   Warm glass panels (from styles/glass.css) sit on top so the gold and copper
+   accents pop against the blue.
+
+   Motion contract: transform + opacity only. Reveals are driven by an
+   IntersectionObserver adding `.is-visible` to the section root; every
+   animation is disabled under prefers-reduced-motion.
+   ========================================================================== */
+
+.schedule {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #dbe2f2;
+  background:
+    radial-gradient(ellipse 92% 58% at 50% -12%, rgba(74, 108, 176, 0.42) 0%, transparent 66%),
+    radial-gradient(ellipse 62% 42% at 84% 14%, rgba(104, 134, 198, 0.24) 0%, transparent 70%),
+    radial-gradient(ellipse 120% 34% at 50% 106%, rgba(212, 160, 23, 0.26) 0%, transparent 72%),
+    linear-gradient(
+      180deg,
+      #070f21 0%,
+      #0e1b3a 28%,
+      #16295a 58%,
+      #1d3266 82%,
+      #17264c 100%
+    );
+}
+
+/* soft warm horizon band — the midway glow just over the treeline */
+.schedule::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 34%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(196, 94, 32, 0.07) 55%,
+    rgba(232, 125, 62, 0.16) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- twinkling bulbs ------------------------------------------------------ */
+
+.schedule__lights {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.schedule__bulb {
+  position: absolute;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    #fff6dc 0%,
+    #ffd977 44%,
+    rgba(212, 160, 23, 0) 74%
+  );
+  box-shadow: 0 0 10px 2px rgba(255, 213, 128, 0.32);
+  opacity: 0.2;
+  transform: scale(0.85);
+  animation-name: schedule-twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: opacity, transform;
+}
+
+@keyframes schedule-twinkle {
+  0%,
+  100% {
+    opacity: 0.16;
+    transform: scale(0.82);
+  }
+  42% {
+    opacity: 0.95;
+    transform: scale(1.18);
+  }
+  68% {
+    opacity: 0.34;
+    transform: scale(0.94);
+  }
+}
+
+.schedule__inner {
+  z-index: 1;
+}
+
+/* --- reveal (slide in from the left, staggered) --------------------------- */
+
+.schedule [data-slide] {
+  opacity: 0;
+  transform: translate3d(-34px, 0, 0);
+  transition:
+    opacity 640ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 640ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.schedule.is-visible [data-slide] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.schedule.is-visible .schedule__feature-wrap {
+  transition-delay: 110ms;
+}
+
+.schedule.is-visible .schedule__empty {
+  transition-delay: 110ms;
+}
+
+.schedule.is-visible .schedule__list-title {
+  transition-delay: 190ms;
+}
+
+.schedule.is-visible .schedule__item:nth-child(1) {
+  transition-delay: 250ms;
+}
+
+.schedule.is-visible .schedule__item:nth-child(2) {
+  transition-delay: 330ms;
+}
+
+.schedule.is-visible .schedule__item:nth-child(3) {
+  transition-delay: 410ms;
+}
+
+.schedule.is-visible .schedule__item:nth-child(4) {
+  transition-delay: 490ms;
+}
+
+.schedule.is-visible .schedule__item:nth-child(5) {
+  transition-delay: 570ms;
+}
+
+.schedule.is-visible .schedule__footer {
+  transition-delay: 660ms;
+}
+
+/* --- header --------------------------------------------------------------- */
+
+.schedule__head {
+  max-width: 46rem;
+}
+
+.schedule__eyebrow {
+  margin: 0;
+  color: #f0c74e;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.schedule__title {
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: clamp(2.4rem, 6.4vw, 4.4rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #fdf8f0;
+  margin: 1rem 0 0;
+}
+
+.schedule__lede {
+  max-width: 42rem;
+  margin: 1.5rem 0 0;
+  color: #c2cde6;
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  line-height: 1.75;
+}
+
+.schedule__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+}
+
+.schedule__chip {
+  border: 1px solid rgba(240, 199, 78, 0.34);
+  border-radius: 999px;
+  background: rgba(212, 160, 23, 0.08);
+  color: #f4dfa4;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.45rem 1rem;
+}
+
+/* --- featured (marquee) card ---------------------------------------------- */
+
+.schedule__feature-wrap {
+  position: relative;
+  margin-top: clamp(3rem, 6vw, 4.5rem);
+}
+
+/* breathing halo — opacity + scale only, sits behind the glass panel */
+.schedule__feature-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -18px;
+  border-radius: 32px;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(240, 199, 78, 0.34) 0%,
+    rgba(196, 94, 32, 0.18) 46%,
+    rgba(212, 160, 23, 0) 74%
+  );
+  filter: blur(16px);
+  opacity: 0.4;
+  z-index: 0;
+  pointer-events: none;
+  animation: schedule-breathe 6s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+@keyframes schedule-breathe {
+  0%,
+  100% {
+    opacity: 0.34;
+    transform: scale(0.985);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(1.02);
+  }
+}
+
+.schedule__feature {
+  position: relative;
+  z-index: 1;
+  border-radius: 24px;
+  padding: clamp(1.75rem, 3.6vw, 3rem);
+}
+
+/* decorative fairgrounds texture, blurred well past legibility */
+.schedule__feature-photo {
+  position: absolute;
+  inset: 0;
+  background-image: url('/brand/state-fair.jpeg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.16;
+  filter: blur(2px) saturate(0.55);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.schedule__feature-body {
+  position: relative;
+  z-index: 2;
+}
+
+.schedule__flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, #f2cd5c, #d4a017 60%, #b3860f);
+  color: #2a1809;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.95rem;
+  box-shadow: 0 6px 18px rgba(212, 160, 23, 0.32);
+}
+
+.schedule__flag-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #7a5d0b;
+}
+
+.schedule__feature-date {
+  display: block;
+  margin-top: 1.6rem;
+  color: #f0c74e;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.schedule__feature-venue {
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: clamp(1.9rem, 4.2vw, 3rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fffaf0;
+  margin: 0.5rem 0 0;
+}
+
+.schedule__feature-city {
+  margin: 0.5rem 0 0;
+  color: #e2d5c1;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.schedule__feature-note {
+  max-width: 44ch;
+  margin: 1.4rem 0 0;
+  color: #ddd2c2;
+  font-size: 0.975rem;
+  line-height: 1.7;
+}
+
+/* --- timeline ------------------------------------------------------------- */
+
+.schedule__list-title {
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #eef2fb;
+  margin: clamp(3.5rem, 7vw, 5.5rem) 0 0.5rem;
+}
+
+.schedule__list {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* the rail */
+.schedule__list::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 1.6rem;
+  bottom: 1.6rem;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(212, 160, 23, 0) 0%,
+    rgba(212, 160, 23, 0.45) 14%,
+    rgba(212, 160, 23, 0.45) 86%,
+    rgba(212, 160, 23, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.schedule__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 8rem) minmax(0, 1fr);
+  gap: 0.4rem 2rem;
+  align-items: baseline;
+  padding: 1.5rem 0 1.5rem 2.75rem;
+  border-bottom: 1px solid rgba(214, 226, 255, 0.09);
+}
+
+.schedule__item:last-child {
+  border-bottom: 0;
+}
+
+.schedule__node {
+  position: absolute;
+  left: 2px;
+  top: 2rem;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: radial-gradient(circle, #ffeeb8 0%, #d4a017 68%);
+  box-shadow:
+    0 0 0 4px rgba(212, 160, 23, 0.12),
+    0 0 12px rgba(212, 160, 23, 0.5);
+}
+
+.schedule__date {
+  color: #f0c74e;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.schedule__where {
+  min-width: 0;
+}
+
+.schedule__venue {
+  margin: 0;
+  color: #f6f8fd;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.schedule__city {
+  margin: 0.2rem 0 0;
+  color: #a8b6d4;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* --- empty (off-season) --------------------------------------------------- */
+
+.schedule__empty {
+  max-width: 44rem;
+  margin-top: clamp(3rem, 6vw, 4.5rem);
+  border-radius: 24px;
+  padding: clamp(1.75rem, 3.6vw, 2.75rem);
+}
+
+.schedule__empty-title {
+  font-family: var(--font-display, 'Playfair Display', Georgia, serif);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: #fffaf0;
+  margin: 0;
+}
+
+.schedule__empty-copy {
+  max-width: 46ch;
+  margin: 0.9rem 0 0;
+  color: #ded3c3;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+/* --- quiet footer line ---------------------------------------------------- */
+
+.schedule__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.7rem;
+  margin: clamp(3.5rem, 7vw, 5rem) 0 0;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(214, 226, 255, 0.1);
+  color: #93a3c4;
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+}
+
+.schedule__footer-sep {
+  color: rgba(212, 160, 23, 0.7);
+}
+
+.schedule__footer-link {
+  color: #d9c48f;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(217, 196, 143, 0.35);
+  transition: color 220ms ease, border-color 220ms ease;
+}
+
+.schedule__footer-link:hover {
+  color: #f4dfa4;
+  border-bottom-color: rgba(244, 223, 164, 0.8);
+}
+
+.schedule__footer-link:focus-visible {
+  outline: 3px solid #f0c74e;
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* --- narrow screens -------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .schedule__item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem;
+    padding-left: 2.25rem;
+  }
+
+  .schedule__feature-wrap::before {
+    inset: -10px;
+    filter: blur(12px);
+  }
+}
+
+/* --- reduced motion --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .schedule [data-slide] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    transition-delay: 0ms;
+  }
+
+  .schedule__bulb {
+    animation: none;
+    opacity: 0.5;
+    transform: none;
+  }
+
+  .schedule__feature-wrap::before {
+    animation: none;
+    opacity: 0.45;
+    transform: none;
+  }
+
+  .schedule__footer-link {
+    transition: none;
+  }
+}

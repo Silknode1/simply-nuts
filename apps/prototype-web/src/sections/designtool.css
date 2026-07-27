@@ -1,0 +1,994 @@
+/* ==========================================================================
+   DesignToolSection — "Design your own gift"
+   Darkest room on the page: a near-black workshop with one warm pool of light
+   on the bench, a gold laser accent, and CSS-only materials (wood / bamboo /
+   tin) so the engraved text stays crisp at any size.
+
+   Motion contract: transform + opacity only. Reveal via .is-visible on the
+   section root. Everything collapses to instant state swaps under
+   prefers-reduced-motion.
+   ========================================================================== */
+
+.dt {
+  --dt-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dt-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dt-gold: #e6c06a;
+  --dt-line: rgba(232, 200, 140, 0.16);
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: 6rem;
+  color: #ece0cd;
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(196, 134, 78, 0.14), transparent 62%),
+    linear-gradient(180deg, #0c0704 0%, #150d07 44%, #110a05 74%, #090603 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 224, 170, 0.09),
+    inset 0 -1px 0 rgba(255, 224, 170, 0.06);
+}
+
+@media (min-width: 768px) {
+  .dt {
+    padding-block: 8rem;
+  }
+}
+
+/* the focused pool of light over the bench */
+.dt__pool {
+  position: absolute;
+  top: 16%;
+  left: 50%;
+  width: min(1100px, 120%);
+  aspect-ratio: 3 / 2;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    closest-side,
+    rgba(255, 206, 138, 0.2),
+    rgba(255, 186, 110, 0.08) 48%,
+    transparent 74%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+@media (min-width: 1024px) {
+  .dt__pool {
+    left: 34%;
+    width: min(900px, 80%);
+  }
+}
+
+.dt__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(130% 90% at 50% 40%, transparent 42%, rgba(0, 0, 0, 0.62) 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.dt__inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- header ---------------------------------------------------------------- */
+
+.dt-head {
+  max-width: 46rem;
+  margin-bottom: 4rem;
+}
+
+@media (min-width: 768px) {
+  .dt-head {
+    margin-bottom: 5.5rem;
+  }
+}
+
+.dt-eyebrow {
+  margin: 0 0 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--dt-gold);
+}
+
+.dt-eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 2rem;
+  height: 1px;
+  margin-right: 0.9rem;
+  vertical-align: 0.28em;
+  background: linear-gradient(90deg, transparent, var(--dt-gold));
+}
+
+.dt-title {
+  margin: 0 0 1.5rem;
+  font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #fdf4e4;
+}
+
+.dt-lede {
+  margin: 0;
+  max-width: 40rem;
+  font-size: clamp(1rem, 1.25vw, 1.125rem);
+  line-height: 1.75;
+  color: rgba(236, 224, 205, 0.72);
+}
+
+/* --- layout ---------------------------------------------------------------- */
+
+.dt-grid {
+  display: grid;
+  gap: 3.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .dt-grid {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    gap: 4.5rem;
+  }
+}
+
+/* --- reveal ---------------------------------------------------------------- */
+
+.dt-reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 700ms var(--dt-ease),
+    transform 700ms var(--dt-ease);
+  transition-delay: calc(var(--dt-i, 0) * 110ms);
+}
+
+.dt.is-visible .dt-reveal {
+  opacity: 1;
+  transform: none;
+}
+
+.dt-panel {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 760ms var(--dt-ease),
+    transform 760ms var(--dt-ease);
+  transition-delay: 300ms;
+}
+
+.dt.is-visible .dt-panel {
+  opacity: 1;
+  transform: none;
+}
+
+/* --- stage ----------------------------------------------------------------- */
+
+.dt-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: clamp(360px, 44vw, 520px);
+  padding: 2rem 0 3rem;
+  perspective: 1200px;
+}
+
+.dt-vessel {
+  --dt-w: 460px;
+  grid-area: 1 / 1;
+  position: relative;
+  width: min(100%, var(--dt-w));
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.dt-vessel--bamboo {
+  --dt-w: 300px;
+}
+.dt-vessel--tin {
+  --dt-w: 430px;
+}
+
+.dt-vessel--in {
+  animation: dt-vessel-in 560ms var(--dt-ease) both;
+  z-index: 2;
+}
+
+.dt-vessel--out {
+  animation: dt-vessel-out 480ms var(--dt-ease) both;
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes dt-vessel-in {
+  from {
+    opacity: 0;
+    transform: rotateX(14deg) rotateY(-9deg) translate3d(0, 16px, 0) scale(0.955);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0deg) rotateY(0deg) translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes dt-vessel-out {
+  from {
+    opacity: 1;
+    transform: rotateX(0deg) rotateY(0deg) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: rotateX(-10deg) rotateY(8deg) translate3d(0, -12px, 0) scale(1.03);
+  }
+}
+
+/* --- materials -------------------------------------------------------------- */
+
+/* wood */
+.dt-vessel--box {
+  --dt-face: linear-gradient(168deg, #dbab72 0%, #c78e52 36%, #ab733c 70%, #8e5b2d 100%);
+  --dt-side: linear-gradient(180deg, #8b5529 0%, #6e4220 100%);
+  --dt-burn: #4a2810;
+  --dt-lip: rgba(255, 240, 214, 0.4);
+  --dt-lid-radius: 12px 12px 6px 6px;
+  --dt-tray-radius: 4px 4px 14px 14px;
+  --dt-lid-ratio: 2.55;
+}
+
+.dt-vessel--box .dt-lid__grain {
+  background:
+    repeating-linear-gradient(
+      91deg,
+      rgba(88, 50, 22, 0.16) 0 1.5px,
+      transparent 1.5px 9px
+    ),
+    repeating-linear-gradient(
+      89deg,
+      rgba(120, 72, 34, 0.1) 0 1px,
+      transparent 1px 17px
+    ),
+    radial-gradient(14px 34px at 18% 62%, rgba(96, 55, 24, 0.3), transparent 70%),
+    radial-gradient(10px 26px at 82% 30%, rgba(96, 55, 24, 0.22), transparent 70%);
+}
+
+/* bamboo */
+.dt-vessel--bamboo {
+  --dt-face: linear-gradient(170deg, #eddcb0 0%, #ddc68d 44%, #c9ab68 78%, #b1904f 100%);
+  --dt-side: linear-gradient(180deg, #b1904f 0%, #8e7239 100%);
+  --dt-burn: #4f3512;
+  --dt-lip: rgba(255, 250, 226, 0.5);
+  --dt-lid-radius: 999px 999px 8px 8px;
+  --dt-tray-radius: 8px 8px 26px 26px;
+  --dt-lid-ratio: 1.65;
+}
+
+.dt-vessel--bamboo .dt-lid__grain {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(126, 100, 48, 0.22) 0 1px,
+      transparent 1px 22px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 249, 222, 0.28) 0 1px,
+      transparent 1px 22px
+    ),
+    linear-gradient(180deg, rgba(150, 120, 60, 0.16) 0 3px, transparent 3px);
+  background-position: 0 0, 11px 0, 0 0;
+}
+
+/* tin */
+.dt-vessel--tin {
+  --dt-face: linear-gradient(
+    102deg,
+    #a8842c 0%,
+    #efdda0 14%,
+    #c9a544 30%,
+    #8f6f22 46%,
+    #ecdc9f 62%,
+    #b08c2e 78%,
+    #e2ce8a 92%,
+    #9c7a26 100%
+  );
+  --dt-side: linear-gradient(180deg, #8f6f22 0%, #6a5117 100%);
+  --dt-burn: #3a2a08;
+  --dt-lip: rgba(255, 248, 214, 0.62);
+  --dt-lid-radius: 26px;
+  --dt-tray-radius: 20px 20px 28px 28px;
+  --dt-lid-ratio: 2.9;
+}
+
+.dt-vessel--tin .dt-lid__grain {
+  background: repeating-linear-gradient(
+    93deg,
+    rgba(255, 255, 255, 0.09) 0 1px,
+    rgba(0, 0, 0, 0.06) 1px 3px
+  );
+}
+
+/* --- lid (the engraved face) ------------------------------------------------ */
+
+.dt-lid {
+  position: relative;
+  aspect-ratio: var(--dt-lid-ratio) / 1;
+  border-radius: var(--dt-lid-radius);
+  background: var(--dt-face);
+  box-shadow:
+    inset 0 1px 0 var(--dt-lip),
+    inset 0 -10px 22px rgba(60, 32, 10, 0.22),
+    0 18px 34px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  transform: rotateX(5deg);
+  transform-origin: 50% 100%;
+  /* lets the engraved type scale off the lid width, not the viewport */
+  container-type: inline-size;
+}
+
+.dt-lid__grain,
+.dt-tray__grain {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.dt-lid__sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 240, 205, 0.24) 0%,
+    rgba(255, 240, 205, 0.05) 26%,
+    transparent 52%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* --- plaque + engraved text -------------------------------------------------- */
+
+.dt-plaque {
+  position: absolute;
+  inset: 14% 9%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  text-align: center;
+}
+
+.dt-engraved {
+  display: block;
+  max-width: 100%;
+  font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.05rem, 4.4cqw, 2.1rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  color: var(--dt-burn);
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.42),
+    0 1px 0 var(--dt-lip),
+    0 0 12px rgba(74, 40, 16, 0.24);
+  transition: color 240ms var(--dt-ease);
+}
+
+.dt-engraved--ghost {
+  opacity: 0.42;
+}
+
+.dt-plaque__rule {
+  width: 44%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--dt-burn), transparent);
+  opacity: 0.5;
+  box-shadow: 0 1px 0 var(--dt-lip);
+}
+
+.dt-plaque__mark {
+  font-size: clamp(0.44rem, 1.5cqw, 0.66rem);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dt-burn);
+  opacity: 0.62;
+  text-shadow: 0 1px 0 var(--dt-lip);
+}
+
+/* --- the laser sweep --------------------------------------------------------- */
+
+.dt-laser {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* the scorch bloom that trails the beam (painted first, sits underneath) */
+.dt-laser::after {
+  content: '';
+  position: absolute;
+  top: 8%;
+  bottom: 8%;
+  left: 0;
+  width: 13%;
+  background: radial-gradient(
+    150% 62% at 24% 50%,
+    rgba(255, 158, 54, 0.42),
+    rgba(255, 120, 30, 0.14) 46%,
+    transparent 76%
+  );
+  filter: blur(7px);
+  animation: dt-sweep 940ms var(--dt-ease) both;
+}
+
+/* the beam itself */
+.dt-laser::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: -10%;
+  bottom: -10%;
+  left: 0;
+  width: 13%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 226, 158, 0.32) 34%,
+    rgba(255, 250, 232, 0.92) 50%,
+    rgba(255, 198, 104, 0.48) 66%,
+    transparent 100%
+  );
+  filter: blur(1.5px);
+  animation: dt-sweep 940ms var(--dt-ease) both;
+}
+
+@keyframes dt-sweep {
+  0% {
+    transform: translate3d(-140%, 0, 0);
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  86% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(820%, 0, 0);
+    opacity: 0;
+  }
+}
+
+/* --- rim + tray -------------------------------------------------------------- */
+
+.dt-rim {
+  display: block;
+  height: 6px;
+  margin: 0 2%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.35),
+    var(--dt-lip) 22%,
+    rgba(255, 255, 255, 0.12) 50%,
+    var(--dt-lip) 78%,
+    rgba(0, 0, 0, 0.35)
+  );
+  opacity: 0.75;
+}
+
+.dt-tray {
+  position: relative;
+  border-radius: var(--dt-tray-radius);
+  padding: 0.75rem;
+  background: var(--dt-side);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.45),
+    inset 0 -1px 0 var(--dt-lip),
+    0 24px 40px rgba(0, 0, 0, 0.48);
+  overflow: hidden;
+}
+
+.dt-cells {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dt-vessel--bamboo .dt-cells {
+  flex-direction: column;
+}
+
+.dt-cell {
+  position: relative;
+  flex: 1 1 0;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.34));
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.6),
+    inset 0 -1px 0 rgba(255, 232, 190, 0.12);
+}
+
+.dt-vessel--bamboo .dt-cell {
+  aspect-ratio: 4 / 1;
+}
+
+.dt-cell::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 7px;
+  border: 1px dashed rgba(232, 200, 140, 0.22);
+  opacity: 1;
+  transition: opacity 300ms var(--dt-ease);
+  pointer-events: none;
+}
+
+.dt-cell--on::after {
+  opacity: 0;
+}
+
+.dt-cell__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  animation: dt-mound 520ms var(--dt-pop) both;
+}
+
+.dt-cell__well {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(80% 60% at 50% 118%, rgba(0, 0, 0, 0.5), transparent 70%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.4), transparent 46%);
+  pointer-events: none;
+}
+
+@keyframes dt-mound {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24%, 0) scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dt-cast {
+  position: absolute;
+  left: 50%;
+  bottom: -34px;
+  width: 84%;
+  height: 42px;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.62), transparent 76%);
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+/* --- preview captions --------------------------------------------------------- */
+
+.dt-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  color: rgba(240, 228, 208, 0.9);
+}
+
+.dt-summary strong {
+  font-weight: 700;
+  color: var(--dt-gold);
+}
+
+.dt-summary__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(232, 200, 140, 0.5);
+}
+
+.dt-note {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: rgba(236, 224, 205, 0.56);
+}
+
+.dt-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- control panel ------------------------------------------------------------ */
+
+.dt-panel {
+  padding: 2rem 1.5rem;
+  border-radius: 22px;
+}
+
+@media (min-width: 640px) {
+  .dt-panel {
+    padding: 2.5rem 2.25rem;
+  }
+}
+
+.dt-step + .dt-step {
+  margin-top: 2.5rem;
+}
+
+.dt-step__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.1rem;
+}
+
+.dt-step__num {
+  display: grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 200, 140, 0.38);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--dt-gold);
+}
+
+.dt-step__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(240, 228, 208, 0.82);
+}
+
+/* focus ring shared by every control */
+.dt-option:focus-visible,
+.dt-chip:focus-visible,
+.dt-input:focus-visible,
+.dt-cta__link:focus-visible {
+  outline: 2px solid var(--dt-gold);
+  outline-offset: 3px;
+}
+
+/* --- container options --------------------------------------------------------- */
+
+.dt-options {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.dt-option {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  border-radius: 14px;
+  border: 1px solid rgba(232, 200, 140, 0.14);
+  background: rgba(255, 240, 214, 0.04);
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background 260ms var(--dt-ease),
+    border-color 260ms var(--dt-ease),
+    transform 260ms var(--dt-ease);
+}
+
+.dt-option:hover {
+  background: rgba(255, 240, 214, 0.08);
+  border-color: rgba(232, 200, 140, 0.3);
+}
+
+.dt-option--on {
+  background: rgba(255, 208, 132, 0.13);
+  border-color: rgba(232, 192, 106, 0.6);
+  animation: dt-pop 420ms var(--dt-pop);
+}
+
+.dt-swatch {
+  width: 2.3rem;
+  height: 2.3rem;
+  flex: none;
+  border-radius: 9px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 220, 0.4),
+    0 3px 10px rgba(0, 0, 0, 0.42);
+}
+
+.dt-swatch--box {
+  background: linear-gradient(160deg, #dbab72, #a8703a 62%, #7d4f26);
+}
+.dt-swatch--bamboo {
+  background: linear-gradient(160deg, #eddcb0, #d3ba7d 60%, #ab8b4a);
+}
+.dt-swatch--tin {
+  background: linear-gradient(104deg, #a8842c, #efdda0 26%, #8f6f22 58%, #e2ce8a 88%, #9c7a26);
+}
+
+.dt-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.dt-option__name {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #f7ecd9;
+}
+
+.dt-option__spec {
+  font-size: 0.78rem;
+  color: rgba(236, 224, 205, 0.55);
+}
+
+@keyframes dt-pop {
+  0% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.028);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* --- engraving field ------------------------------------------------------------ */
+
+.dt-field {
+  position: relative;
+}
+
+.dt-input {
+  width: 100%;
+  padding: 0.9rem 4.4rem 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 200, 140, 0.2);
+  background: rgba(12, 7, 4, 0.5);
+  color: #fdf4e4;
+  font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
+  font-size: 1.02rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45);
+  transition:
+    border-color 240ms var(--dt-ease),
+    background 240ms var(--dt-ease);
+}
+
+.dt-input::placeholder {
+  color: rgba(236, 224, 205, 0.3);
+}
+
+.dt-input:hover,
+.dt-input:focus {
+  border-color: rgba(232, 192, 106, 0.55);
+  background: rgba(12, 7, 4, 0.66);
+}
+
+.dt-count {
+  position: absolute;
+  top: 50%;
+  right: 0.95rem;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  color: rgba(236, 224, 205, 0.42);
+  pointer-events: none;
+}
+
+.dt-help {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: rgba(236, 224, 205, 0.5);
+}
+
+/* --- fill chips ------------------------------------------------------------------ */
+
+.dt-chips {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.dt-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.55rem 0.9rem 0.55rem 0.55rem;
+  text-align: left;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 200, 140, 0.14);
+  background: rgba(255, 240, 214, 0.04);
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background 260ms var(--dt-ease),
+    border-color 260ms var(--dt-ease),
+    transform 260ms var(--dt-ease);
+}
+
+.dt-chip:hover {
+  background: rgba(255, 240, 214, 0.08);
+  border-color: rgba(232, 200, 140, 0.3);
+}
+
+.dt-chip--on {
+  background: rgba(255, 208, 132, 0.13);
+  border-color: rgba(232, 192, 106, 0.6);
+  animation: dt-pop 420ms var(--dt-pop);
+}
+
+.dt-chip__img {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  border-radius: 999px;
+  object-fit: cover;
+  filter: saturate(0.75) brightness(0.82);
+  transition: filter 300ms var(--dt-ease);
+}
+
+.dt-chip--on .dt-chip__img {
+  filter: none;
+}
+
+.dt-chip__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.dt-chip__name {
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: #f7ecd9;
+}
+
+.dt-chip__note {
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: rgba(236, 224, 205, 0.5);
+}
+
+.dt-chip__tick {
+  position: relative;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 200, 140, 0.32);
+  transition:
+    background 240ms var(--dt-ease),
+    border-color 240ms var(--dt-ease);
+}
+
+.dt-chip--on .dt-chip__tick {
+  background: var(--dt-gold);
+  border-color: var(--dt-gold);
+}
+
+.dt-chip__tick::after {
+  content: '';
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  width: 0.34rem;
+  height: 0.6rem;
+  border: solid #1a1006;
+  border-width: 0 2px 2px 0;
+  opacity: 0;
+  transform: translate(-50%, -55%) rotate(42deg) scale(0.6);
+  transition:
+    opacity 220ms var(--dt-ease),
+    transform 320ms var(--dt-pop);
+}
+
+.dt-chip--on .dt-chip__tick::after {
+  opacity: 1;
+  transform: translate(-50%, -55%) rotate(42deg) scale(1);
+}
+
+/* --- CTA -------------------------------------------------------------------------- */
+
+.dt-cta {
+  margin-top: 2.75rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--dt-line);
+}
+
+.dt-cta__link {
+  padding: 0.8rem 1.6rem;
+  font-size: 0.95rem;
+}
+
+.dt-cta__note {
+  margin: 1.1rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  color: rgba(236, 224, 205, 0.5);
+}
+
+/* --- reduced motion ----------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .dt-reveal,
+  .dt-panel {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    transition-delay: 0s;
+  }
+
+  .dt-vessel--in,
+  .dt-vessel--out,
+  .dt-cell__img,
+  .dt-option--on,
+  .dt-chip--on {
+    animation: none;
+  }
+
+  .dt-vessel--out {
+    display: none;
+  }
+
+  .dt-option,
+  .dt-chip,
+  .dt-input,
+  .dt-chip__img,
+  .dt-chip__tick,
+  .dt-chip__tick::after,
+  .dt-cell::after,
+  .dt-engraved {
+    transition: none;
+  }
+}
