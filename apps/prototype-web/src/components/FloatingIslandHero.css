@@ -146,15 +146,27 @@
   .fih__hotspot { font-size: 11px; padding: 0.35rem 0.6rem; }
 }
 
-/* Chippy + the laser engraver — the journey's sign-off. Lives bottom-LEFT,
-   keeping the island company while the featured harvest owns the right. */
+/* Chippy + the laser engraver — the hero's sign-off and the hand-off into the
+   store below. He owns the RIGHT of the frame (the island parks left by then),
+   and he's big enough to actually read as the closing beat. */
 .fih__finale {
-  position: absolute; left: 3%; bottom: 3%; z-index: 5;
+  position: absolute; right: 4%; bottom: 6%; z-index: 5;
   pointer-events: none; opacity: 0; will-change: opacity, transform;
+  text-align: center;
 }
 .fih__finale img {
-  height: clamp(120px, 26vh, 280px); width: auto;
-  filter: drop-shadow(0 10px 24px rgba(44, 32, 19, 0.35));
+  height: clamp(180px, 38vh, 420px); width: auto;
+  filter: drop-shadow(0 14px 34px rgba(44, 32, 19, 0.42));
+}
+.fih__finale-cue {
+  display: block; margin-top: 0.5rem;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+  color: #6e4220;
+}
+
+@media (max-width: 760px) {
+  .fih__finale { right: 50%; transform: translateX(50%); bottom: 4%; }
+  .fih__finale img { height: clamp(140px, 26vh, 220px); }
 }
 
 /* --- the featured harvest: closing product reveal ------------------------- */

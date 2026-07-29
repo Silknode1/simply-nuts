@@ -85,6 +85,8 @@ export default function JourneyPage() {
           through a real gap in the layout instead of over the copy. The island
           measures these anchors directly, so the flight stays correct however
           the rooms' heights change. Sides alternate so it weaves down the page. */}
+      {/* hero → store: the orchard's grey gives way to the shop's warm cream */}
+      <RidgeDivider variant="dunes" from="#c8c6c0" to="#fdf8f0" label="From the orchard" />
       <div className="lane lane--right" data-island-lane="right">
         <ProductsSection />
       </div>

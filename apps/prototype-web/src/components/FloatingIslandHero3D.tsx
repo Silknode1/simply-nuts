@@ -5,8 +5,6 @@ import { Html } from '@react-three/drei';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SHOP_COLLECTIONS } from '../config';
-import { useFeaturedProducts } from '../hooks/useFeaturedProducts';
-import FeaturedHarvest from './FeaturedHarvest';
 import ChipmunkChase from './ChipmunkChase';
 import './FloatingIslandHero.css';
 
@@ -73,7 +71,7 @@ const ROOTS_Z = -0.6;
 const SURFACE_Z = 0;
 // Frame the island lower + smaller than full-bleed so tree tops clear the
 // navbar/titles on wide desktop viewports and the island reads centered.
-const BASE_S = 0.68;
+const BASE_S = 0.85; // ~25% larger than the original 0.68 framing
 const BASE_Y = -1.27;
 
 // critical assets gating the loader: 2 island layers + 1 first frame per tree
@@ -104,15 +102,15 @@ type Pose = { x: number; y: number; s: number; op: number; rot: number };
  * able to see the orchard working.
  */
 const LANE_POSE: Record<IslandLane, Pose> = {
-  right: { x: 5.4, y: 0.4, s: 0.58, op: 0.98, rot: -0.05 },
-  left: { x: -5.4, y: 0.4, s: 0.58, op: 0.98, rot: 0.05 },
-  top: { x: 0.2, y: 2.9, s: 0.44, op: 0.92, rot: 0.0 },
+  right: { x: 6.2, y: 0.4, s: 0.72, op: 0.98, rot: -0.06 },
+  left: { x: -6.2, y: 0.4, s: 0.72, op: 0.98, rot: 0.06 },
+  top: { x: 0.2, y: 3.2, s: 0.55, op: 0.92, rot: 0.0 },
 };
 
 /** Pose the moment the hero beat ends — parked left, still large. */
-const EXIT_POSE: Pose = { x: -2.7, y: -1.3, s: 0.9, op: 1, rot: 0 };
+const EXIT_POSE: Pose = { x: -2.7, y: -1.3, s: 1.05, op: 1, rot: 0 };
 /** Pose past the last room — rises and clears the top of the page. */
-const LIFTOFF_POSE: Pose = { x: 0.2, y: 5.8, s: 0.7, op: 0, rot: 0 };
+const LIFTOFF_POSE: Pose = { x: 0.2, y: 5.9, s: 0.88, op: 0, rot: 0 };
 
 const mixPose = (a: Pose, b: Pose, k: number): Pose => ({
   x: lerp(a.x, b.x, k),
@@ -171,27 +169,181 @@ const frameUrl = (id: string, i: number) => asset(`seq828/${id}/f_${String(i + 1
 /** Compensation so a plane at depth z shows the exact manifest footprint on screen. */
 const depthScale = (z: number) => (CAM_DIST - z) / CAM_DIST;
 
-/** Recreates the 2D version's CSS mask feather (radial-gradient ellipse) as a shared alphaMap. */
-function makeFeatherTexture(): THREE.CanvasTexture {
+/**
+ * TREE MATERIAL — keys out the footage's baked backdrop.
+ * ---------------------------------------------------------------------------
+ * The tree sequences were rendered over a flat neutral grey (sampled: exactly
+ * rgb(198,198,198)). That was invisible while the stage shared the same grey,
+ * but the island now travels across cream, forest, walnut and dusk-blue rooms,
+ * where the grey reads as an ugly box behind every tree.
+ *
+ * The key exploits the one thing that separates backdrop from subject: the
+ * backdrop is NEUTRAL (r≈g≈b) at a known luminance, while foliage, bark,
+ * blossom and fruit all carry colour. A pixel is treated as background only if
+ * it is BOTH near-neutral AND near that luminance — so white blossom (neutral
+ * but far brighter) and grey-brown bark (near that luminance but saturated)
+ * both survive. Anti-aliased rim pixels key partially, which gives a free,
+ * natural edge feather (this replaced the old radial alphaMap entirely).
+ */
+const TREE_VERT = /* glsl */ `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const TREE_FRAG = /* glsl */ `
+  uniform sampler2D uMap;
+  uniform float uOpacity;
+  uniform float uTol;                 // how far from the backdrop still counts as backdrop
+  // Backdrop luminance sampled at the four corners (linear space). The
+  // sequences were not lit flat — pecan's backdrop ramps from ~169 to ~236
+  // across the frame — so the expected backdrop is interpolated per pixel
+  // rather than compared against one number.
+  uniform float uKeyTL;
+  uniform float uKeyTR;
+  uniform float uKeyBL;
+  uniform float uKeyBR;
+  uniform float uFloor;               // nothing in the tree is this bright AND grey
+  varying vec2 vUv;
+
+  void main() {
+    vec4 c = texture2D(uMap, vUv);
+    float mx = max(c.r, max(c.g, c.b));
+    float mn = min(c.r, min(c.g, c.b));
+    float sat = mx - mn;              // ~0 on the neutral backdrop, high on foliage
+
+    // vUv.y = 1 at the TOP of the image for a CanvasTexture
+    float top = mix(uKeyTL, uKeyTR, vUv.x);
+    float bot = mix(uKeyBL, uKeyBR, vUv.x);
+    float key = mix(bot, top, vUv.y);
+
+    // How neutral this pixel is (1 = perfectly grey, 0 = clearly coloured).
+    // Foliage, bark, blossom and fruit all carry colour, so this alone
+    // protects the subject.
+    float neutral = 1.0 - smoothstep(0.018, 0.085, sat);
+
+    // RULE A — matches the interpolated backdrop level.
+    float matches = 1.0 - smoothstep(uTol * 0.35, uTol, abs(mx - key));
+
+    // RULE B — neutral AND brighter than anything in the tree. The sequences
+    // were lit with a soft gradient backdrop (pecan ramps 169→236), so a
+    // single level can't catch all of it; anything grey and above the floor is
+    // backdrop. Applied mostly in the UPPER frame, where the backdrop
+    // dominates and the subject is foliage — near the base, where pale nuts
+    // and moss live, it fades out so nothing gets punched out of the ground.
+    float upper = smoothstep(0.28, 0.62, vUv.y);
+    float bright = smoothstep(uFloor * 0.92, uFloor * 1.12, mx);
+    float aboveFloor = bright * upper;
+
+    float bg = neutral * max(matches, aboveFloor);
+
+    // Corner guard. Not every sequence has a neutral backdrop — pecan's ramps
+    // to a WARM (245,234,215) top corner, which no saturation-based key can
+    // take without also eating the nuts. A soft ellipse crops the plane's
+    // corners, which is exactly where those wash-outs live, and costs nothing.
+    vec2 p = (vUv - 0.5) * vec2(2.02, 1.94);
+    float vig = 1.0 - smoothstep(0.86, 1.02, length(p));
+
+    float a = (1.0 - bg) * vig * c.a * uOpacity;
+    if (a < 0.012) discard;
+    gl_FragColor = vec4(c.rgb, a);
+  }
+`;
+
+/**
+ * The tree textures are tagged sRGB, so WebGL hands the shader LINEAR values —
+ * the backdrop samples as ~0.565, not the 0.776 you'd measure in an image
+ * editor. Converting here (rather than hard-coding a magic number) keeps the
+ * key correct and self-documenting.
+ */
+const srgbToLinear = (v: number) =>
+  v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+const TREE_KEY_LUM = srgbToLinear(198 / 255); // sensible default before sampling
+
+/**
+ * Measure a sequence's actual backdrop instead of assuming one value.
+ * The seven tree sequences were rendered in separate batches, so their
+ * backdrops are NOT identical — sampled they run from ~168 to ~221, and some
+ * carry a soft gradient. We walk the frame's border, keep only the
+ * near-neutral samples (border pixels that are actually foliage are colourful
+ * and get discarded), and take the median. Returns a LINEAR luminance ready
+ * for the shader, or null if the border is too colourful to read.
+ */
+type Corners = { tl: number; tr: number; bl: number; br: number };
+
+function sampleBackdropCorners(img: HTMLImageElement): Corners | null {
+  const W = 48;
+  const H = Math.max(4, Math.round((img.naturalHeight / img.naturalWidth) * W));
   const c = document.createElement('canvas');
-  c.width = 256; c.height = 342; // ~3:4, matches the tree plane aspect
-  const ctx = c.getContext('2d')!;
-  const cx = c.width * 0.5, cy = c.height * 0.47;
-  const rx = c.width * 0.5 * 0.93, ry = c.height * 0.5 * 0.96;
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, c.width, c.height);
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.scale(1, ry / rx);
-  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
-  g.addColorStop(0, '#fff');
-  g.addColorStop(0.62, '#fff');
-  g.addColorStop(0.95, '#000');
-  g.addColorStop(1, '#000');
-  ctx.fillStyle = g;
-  ctx.fillRect(-cx, (-cy * rx) / ry, c.width, (c.height * rx) / ry);
-  ctx.restore();
-  return new THREE.CanvasTexture(c);
+  c.width = W;
+  c.height = H;
+  const cx = c.getContext('2d', { willReadFrequently: true });
+  if (!cx) return null;
+  cx.drawImage(img, 0, 0, W, H);
+
+  let data: ImageData;
+  try {
+    data = cx.getImageData(0, 0, W, H);
+  } catch {
+    return null; // tainted canvas — fall back to the default key
+  }
+
+  /** Neutral-only luminance at a pixel, or null if it's coloured (i.e. subject). */
+  const neutralAt = (x: number, y: number): number | null => {
+    const i = (y * W + x) * 4;
+    const r = data.data[i], g = data.data[i + 1], b = data.data[i + 2];
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    return mx - mn <= 12 ? mx / 255 : null;
+  };
+
+  const median = (xs: number[]) =>
+    xs.length ? xs.slice().sort((a, b) => a - b)[Math.floor(xs.length / 2)] : null;
+
+  // Every neutral border pixel, used only as a fallback for corners that are
+  // buried in foliage.
+  const all: number[] = [];
+  for (let x = 0; x < W; x++) {
+    for (const y of [0, 1, H - 2, H - 1]) {
+      const v = neutralAt(x, y);
+      if (v !== null) all.push(v);
+    }
+  }
+  for (let y = 0; y < H; y++) {
+    for (const x of [0, 1, W - 2, W - 1]) {
+      const v = neutralAt(x, y);
+      if (v !== null) all.push(v);
+    }
+  }
+  const global = median(all);
+  if (global === null || all.length < 8) return null;
+
+  /**
+   * Read each corner from a small window AT that corner. Quadrant-wide medians
+   * flatten the very gradient we're trying to model (pecan's true top-right is
+   * ~0.83 linear but its quadrant median reads ~0.49), which left a bright
+   * plate unkeyed.
+   */
+  const win = Math.max(3, Math.round(W * 0.14));
+  const cornerMedian = (x0: number, y0: number): number => {
+    const xs: number[] = [];
+    for (let x = x0; x < x0 + win; x++) {
+      for (let y = y0; y < y0 + win; y++) {
+        if (x < 0 || y < 0 || x >= W || y >= H) continue;
+        const v = neutralAt(x, y);
+        if (v !== null) xs.push(v);
+      }
+    }
+    return srgbToLinear(median(xs) ?? global);
+  };
+
+  return {
+    tl: cornerMedian(0, 0),
+    tr: cornerMedian(W - win, 0),
+    bl: cornerMedian(0, H - win),
+    br: cornerMedian(W - win, H - win),
+  };
 }
 
 /** Soft black ellipse with baked alpha — shared by tree base shadows, cloud + contact shadows. */
@@ -311,12 +463,11 @@ function LayerPlane({ url, z, onReady }: { url: string; z: number; onReady: () =
  * ripening, and casts a soft base shadow that deepens + migrates with scroll.
  */
 function MaturingTree({
-  t, index, progressRef, feather, shadowTex, reduced, onReady,
+  t, index, progressRef, shadowTex, reduced, onReady,
 }: {
   t: Tree;
   index: number;
   progressRef: React.MutableRefObject<number>;
-  feather: THREE.CanvasTexture;
   shadowTex: THREE.CanvasTexture;
   reduced: boolean;
   onReady: () => void;
@@ -337,6 +488,21 @@ function MaturingTree({
     tex.colorSpace = THREE.SRGBColorSpace;
     return { ctx, tex };
   }, []);
+
+  const treeUniforms = useMemo(
+    () => ({
+      uMap: { value: tex },
+      uOpacity: { value: 1 },
+      uTol: { value: 0.17 },
+      // replaced per-tree once frame 0 loads (see sampleBackdropCorners)
+      uKeyTL: { value: TREE_KEY_LUM },
+      uKeyTR: { value: TREE_KEY_LUM },
+      uKeyBL: { value: TREE_KEY_LUM },
+      uKeyBR: { value: TREE_KEY_LUM },
+      uFloor: { value: TREE_KEY_LUM * 0.85 },
+    }),
+    [tex],
+  );
 
   const drawFrame = useCallback((f: number) => {
     const img = rt.current.imgs[f];
@@ -398,7 +564,25 @@ function MaturingTree({
     };
     // reduced motion: only the ripe frame is ever needed (saves the whole sequence)
     const critical = reduced ? t.frames - 1 : 0;
-    load(critical, () => { drawFrame(critical); onReady(); });
+    load(critical, () => {
+      // tune this tree's chroma key to ITS OWN backdrop before first paint
+      const img = rt.current.imgs[critical];
+      if (img) {
+        const k = sampleBackdropCorners(img);
+        if (k) {
+          treeUniforms.uKeyTL.value = k.tl;
+          treeUniforms.uKeyTR.value = k.tr;
+          treeUniforms.uKeyBL.value = k.bl;
+          treeUniforms.uKeyBR.value = k.br;
+          // the top corners are the most reliable read of the backdrop (the
+          // base of every frame is moss/ground), so the "grey and bright"
+          // floor is derived from the dimmer of the two
+          treeUniforms.uFloor.value = Math.min(k.tl, k.tr) * 0.85;
+        }
+      }
+      drawFrame(critical);
+      onReady();
+    });
     if (!reduced) for (let i = 1; i < t.frames; i++) load(i);
     return () => { alive = false; tex.dispose(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -449,7 +633,14 @@ function MaturingTree({
       )}
       <mesh position={[0, h / 2, 0]}>
         <planeGeometry args={[w, h]} />
-        <meshBasicMaterial map={tex} alphaMap={feather} transparent depthWrite={false} toneMapped={false} />
+        {/* chroma-keys the footage's baked grey backdrop — see TREE_FRAG */}
+        <shaderMaterial
+          vertexShader={TREE_VERT}
+          fragmentShader={TREE_FRAG}
+          uniforms={treeUniforms}
+          transparent
+          depthWrite={false}
+        />
       </mesh>
       {/* The per-tree "Shop <nut>" pills were replaced by ONE island sign
           (see <IslandSign/>) — six competing labels cluttered the orchard. */}
@@ -745,13 +936,23 @@ function IslandRig({
     const tv = travelRef.current;
     if (tv > 0) {
       const pose = poseRef.current;
+      // The island never parks. On top of the lane pose it keeps a wide, slow
+      // orbit plus a faster wobble, so it is ALWAYS moving through the page —
+      // drifting in and out of its corridor rather than sitting in it.
+      // drift stays inside the reserved corridor — wide enough to feel alive,
+      // never so wide that it wanders onto the copy
+      const driftX = Math.sin(ms / 5200) * 0.85 + Math.sin(ms / 2100) * 0.3;
+      const driftY = Math.cos(ms / 4300) * 0.9 + Math.sin(ms / 1700) * 0.25;
+      const breathe = 1 + Math.sin(ms / 6100) * 0.09; // grows and shrinks as it goes
+      const tumble = Math.sin(ms / 3300) * 0.09 + Math.sin(ms / 1250) * 0.03;
+
       // blend out of the hero pose over the first slice of travel so the
       // hand-off is a continuous glide, not a jump
       const blend = smooth(clamp(tv / 0.06, 0, 1));
-      px = lerp(px, pose.x, blend);
-      py = lerp(py, pose.y + bob * 0.5, blend);
-      ps = lerp(ps, BASE_S * pose.s, blend);
-      pr = lerp(pr, pose.rot + sway * 1.6, blend);
+      px = lerp(px, pose.x + driftX, blend);
+      py = lerp(py, pose.y + driftY + bob * 0.8, blend);
+      ps = lerp(ps, BASE_S * pose.s * breathe, blend);
+      pr = lerp(pr, pose.rot + tumble + sway * 2.2, blend);
     }
 
     g.position.x = px;
@@ -787,7 +988,6 @@ export default function FloatingIslandHero3D() {
   const mistRef = useRef<HTMLDivElement>(null);
   const titlesRef = useRef<HTMLDivElement>(null);
   const finaleRef = useRef<HTMLDivElement>(null);
-  const harvestRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
@@ -798,13 +998,11 @@ export default function FloatingIslandHero3D() {
   /** Document-space centre + side of every room that reserves an island lane. */
   const lanesRef = useRef<LaneAnchor[]>([]);
   const [pending, setPending] = useState(CRITICAL_COUNT);
-  const products = useFeaturedProducts();
 
   const reduced = useMemo(
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     [],
   );
-  const feather = useMemo(() => makeFeatherTexture(), []);
   const shadowTex = useMemo(() => makeShadowTexture(), []);
   const moteTex = useMemo(() => makeMoteTexture(), []);
   const sparkTex = useMemo(() => makeSparkTexture(), []);
@@ -812,19 +1010,14 @@ export default function FloatingIslandHero3D() {
   const markReady = useCallback(() => setPending((n) => n - 1), []);
 
   useEffect(() => () => {
-    feather.dispose(); shadowTex.dispose(); moteTex.dispose(); sparkTex.dispose(); leafTex.dispose();
-  }, [feather, shadowTex, moteTex, sparkTex, leafTex]);
+    shadowTex.dispose(); moteTex.dispose(); sparkTex.dispose(); leafTex.dispose();
+  }, [shadowTex, moteTex, sparkTex, leafTex]);
 
   useEffect(() => {
     if (reduced) {
       progressRef.current = 1; // still, ripe, shoppable
       if (glowRef.current) glowRef.current.style.opacity = '0.9';
       if (finaleRef.current) { finaleRef.current.style.opacity = '1'; finaleRef.current.style.transform = 'none'; }
-      if (harvestRef.current) {
-        harvestRef.current.classList.add('on', 'live');
-        harvestRef.current.style.opacity = '1';
-        harvestRef.current.style.transform = 'none';
-      }
       return;
     }
     // ONE global scroll driver for the whole page. The stage is position:fixed,
@@ -859,10 +1052,21 @@ export default function FloatingIslandHero3D() {
       const g = clamp(window.scrollY / max, 0, 1);
       // the island always heads for the corridor of whichever room is nearest
       // the middle of the viewport
-      poseRef.current = poseFromLanes(
+      const raw = poseFromLanes(
         lanesRef.current,
         window.scrollY + window.innerHeight / 2,
       );
+      // Narrow viewports can't spare a wide corridor (see the .lane-- rules),
+      // so the island tucks further off-frame and shrinks — it keeps poking in
+      // rather than sitting on top of the copy.
+      const w = window.innerWidth;
+      const tuck = w >= 1200 ? 1 : w >= 880 ? 1.22 : 1.5;
+      const shrink = w >= 1200 ? 1 : w >= 880 ? 0.84 : 0.66;
+      poseRef.current = {
+        ...raw,
+        x: raw.x * tuck,
+        s: raw.s * shrink,
+      };
 
       // the hero beat owns the first stretch of the page (its section height);
       // everything after it is travel
@@ -899,15 +1103,6 @@ export default function FloatingIslandHero3D() {
         const k = clamp((p - 0.84) / 0.13, 0, 1) * (1 - smooth(clamp(travel / 0.04, 0, 1)));
         finaleRef.current.style.opacity = String(k);
         finaleRef.current.style.transform = `translateY(${(1 - k) * 36}px)`;
-      }
-      // the featured harvest blooms in as the island parks left, then hands the
-      // page over to the product room below
-      if (harvestRef.current) {
-        const k = clamp((p - 0.84) / 0.12, 0, 1) * (1 - smooth(clamp(travel / 0.05, 0, 1)));
-        harvestRef.current.style.opacity = String(k);
-        harvestRef.current.style.setProperty('--harvest-k', String(k));
-        harvestRef.current.classList.toggle('on', k > 0.12);
-        harvestRef.current.classList.toggle('live', k > 0.5);
       }
     };
     const onScroll = () => {
@@ -966,7 +1161,6 @@ export default function FloatingIslandHero3D() {
                   t={t}
                   index={i}
                   progressRef={progressRef}
-                  feather={feather}
                   shadowTex={shadowTex}
                   reduced={reduced}
                   onReady={markReady}
@@ -990,9 +1184,18 @@ export default function FloatingIslandHero3D() {
         </div>
         <div ref={mistRef} className="fih__mist" />
         <div ref={glowRef} className="fih__glow" />
-        <FeaturedHarvest ref={harvestRef} products={products} />
-        <div ref={finaleRef} className="fih__finale" aria-hidden="true">
-          <img src={`${BASE}brand/chippy-laser.webp`.replace(/\/{2,}/g, '/')} alt="" draggable={false} />
+        {/* The hero's closing beat is Chippy at the engraver + a scroll cue that
+            hands you into the store room below. (The old floating product panel
+            lived here; it duplicated the Harvest room directly beneath it, which
+            is exactly what made this seam feel abrupt.) */}
+        <div ref={finaleRef} className="fih__finale">
+          <img
+            src={`${BASE}brand/chippy-laser.webp`.replace(/\/{2,}/g, '/')}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+          />
+          <span className="fih__finale-cue">Keep scrolling — the store is just below</span>
         </div>
         <div className={`fih__loader${pending <= 0 ? ' fih__loader--done' : ''}`} aria-hidden={pending <= 0}>
           <span className="fih__dot" />

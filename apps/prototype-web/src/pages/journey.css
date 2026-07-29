@@ -70,12 +70,22 @@
 /* The corridor is carved out of the room's CONTENT, not the room itself — the
    section keeps painting its background full-bleed, so the island flies through
    the room's own colour rather than a hole in the page. */
-@media (min-width: 1100px) {
+/* mid widths get a narrower corridor so the copy still has room to breathe */
+@media (min-width: 880px) {
   .lane--right :is([class*="__inner"], .corp-inner, .max-w-6xl) {
-    padding-right: min(30vw, 460px);
+    padding-right: min(30vw, 320px);
   }
   .lane--left :is([class*="__inner"], .corp-inner, .max-w-6xl) {
-    padding-left: min(30vw, 460px);
+    padding-left: min(30vw, 320px);
+  }
+}
+
+@media (min-width: 1200px) {
+  .lane--right :is([class*="__inner"], .corp-inner, .max-w-6xl) {
+    padding-right: min(35vw, 560px);
+  }
+  .lane--left :is([class*="__inner"], .corp-inner, .max-w-6xl) {
+    padding-left: min(35vw, 560px);
   }
   /* 'top' rooms keep their full width — the island rides above them */
 }
