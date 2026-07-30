@@ -93,7 +93,13 @@
 /* --- shared reveal primitive -----------------------------------------------
    Sections may use .reveal + .is-visible (set by their own IntersectionObserver)
    and --i for a stagger index. Transform/opacity only. */
-.reveal {
+/* Scoped to .reveal-active for the same reason the newer primitive is (see
+   src/motion/reveal.css): this hides content with opacity: 0 and depends on an
+   IntersectionObserver to bring it back. Browsers suspend those observers in
+   hidden and prerendering tabs, so unscoped it can leave a section permanently
+   blank. The shared failsafe in useScrollReveal drops the class and reveals
+   everything if no observer has reported in. */
+.reveal-active .reveal {
   opacity: 0;
   transform: translateY(26px);
   transition:
@@ -103,14 +109,14 @@
   will-change: transform, opacity;
 }
 
-.reveal.is-visible {
+.reveal-active .reveal.is-visible {
   opacity: 1;
   transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .journey__rail { display: none; }
-  .reveal {
+  .reveal-active .reveal {
     opacity: 1;
     transform: none;
     transition: none;

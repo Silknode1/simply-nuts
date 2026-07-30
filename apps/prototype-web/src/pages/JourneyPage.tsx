@@ -6,6 +6,7 @@ import ClientsSection from '../sections/ClientsSection';
 import DesignToolSection from '../sections/DesignToolSection';
 import ScheduleSection from '../sections/ScheduleSection';
 import RidgeDivider from '../components/RidgeDivider';
+import { useScrollReveal } from '../motion/useScrollReveal';
 import './journey.css';
 
 // three.js stays out of the shared bundle — the orchard act is the only 3D on the page
@@ -65,6 +66,10 @@ function JourneyRail() {
 }
 
 export default function JourneyPage() {
+  // One controller gives every room the same entrance language — see
+  // src/motion/useScrollReveal.ts. Sections do not animate themselves.
+  useScrollReveal();
+
   return (
     <div className="journey">
       <JourneyRail />

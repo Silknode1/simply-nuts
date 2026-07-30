@@ -1,0 +1,81 @@
+/* ==========================================================================
+   Scroll reveal — the site's one motion primitive.
+   --------------------------------------------------------------------------
+   Everything that enters the viewport arrives the same way: a short rise, a
+   whisper of scale, and a fade. Consistency is what makes motion read as
+   design rather than decoration — six sections each inventing their own
+   entrance is what makes a site feel assembled instead of authored.
+
+   Calibration is deliberately restrained (~22px of travel, no bounce, no
+   overshoot). Long dramatic reveals read as a tech startup; a 40-year family
+   business selling trust to corporate buyers wants the motion to feel
+   expensive and almost unnoticed. The only "modern" note is the expo-out
+   curve, which decelerates hard and gives the arrival a soft landing.
+
+   Applied by src/motion/useScrollReveal.ts — sections do not opt in
+   individually.
+   ========================================================================== */
+
+/* EVERYTHING here is scoped to .reveal-active on <html>, which the controller
+   adds only once it is running and has confirmed IntersectionObserver support.
+   Without that scope the hidden state is never applied at all.
+
+   This is not defensive padding — it is load-bearing. The hidden state is
+   `opacity: 0`, so if the observer were ever prevented from running the entire
+   site would render blank. Browsers suspend IntersectionObserver in hidden or
+   prerendering tabs, and a bfcache restore can resume a page mid-flight, so
+   "the observer always runs" is not a safe assumption to build on. */
+.reveal-active [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-y, 22px), 0) scale(var(--reveal-s, 0.988));
+  transition:
+    opacity 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 720ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: calc(var(--reveal-i, 0) * 68ms);
+  will-change: transform, opacity;
+}
+
+.reveal-active [data-reveal].is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* Leaving the viewport un-reveals, so scrolling back up replays the arrival.
+   The exit is faster and un-staggered — a staggered exit reads as the page
+   falling apart behind you. */
+.reveal-active [data-reveal]:not(.is-revealed) {
+  transition:
+    opacity 300ms cubic-bezier(0.4, 0, 1, 1),
+    transform 380ms cubic-bezier(0.4, 0, 1, 1);
+  transition-delay: 0ms;
+}
+
+/* --- variants ---------------------------------------------------------------
+   Set by the controller from the element's role, so a heading and a product
+   card do not arrive identically. */
+
+/* Headings lead: they travel slightly further and land first. */
+[data-reveal='heading'] { --reveal-y: 28px; --reveal-s: 1; }
+
+/* Body copy is the quietest thing on the page. */
+[data-reveal='text'] { --reveal-y: 18px; --reveal-s: 1; }
+
+/* Imagery gets the scale note — it reads as settling into place. */
+[data-reveal='media'] { --reveal-y: 26px; --reveal-s: 0.972; }
+
+/* Cards and tiles: the one place a stagger is really felt. */
+[data-reveal='card'] { --reveal-y: 30px; --reveal-s: 0.978; }
+
+/* Buttons and links arrive last and barely move — they are the destination,
+   not the journey. */
+[data-reveal='action'] { --reveal-y: 12px; --reveal-s: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-active [data-reveal],
+  .reveal-active [data-reveal]:not(.is-revealed) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    transition-delay: 0ms;
+  }
+}
