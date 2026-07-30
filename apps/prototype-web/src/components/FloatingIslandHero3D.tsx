@@ -49,12 +49,11 @@ type Tree = {
   win: [number, number];                            // maturation window in scroll progress 0..1
   z: number;                                        // billboard depth (world units)
   noShadow?: boolean;                               // edge trees: base shadow would hang off the island
-  underfill?: boolean;                              // clips grew only one side of the crown → mirror-fill the canopy band (see drawFrame)
   shop?: boolean; label?: string; href?: string;
 };
 
 const TREES: Tree[] = [
-  { id: 'almond',    frames: 61, left: 2.3,  top: 0.9,  w: 21.2, h: 50.3, win: [0.00, 0.34], z: 0.12, underfill: true, shop: true, label: 'Shop Almonds', href: NUTS },
+  { id: 'almond',    frames: 61, left: 2.3,  top: 0.9,  w: 21.2, h: 50.3, win: [0.00, 0.34], z: 0.12, shop: true, label: 'Shop Almonds', href: NUTS },
   { id: 'peanut',    frames: 61, left: 4.8,  top: 39.9, w: 11.4, h: 26.9, win: [0.05, 0.40], z: 0.20, noShadow: true, shop: true, label: 'Shop Peanuts', href: NUTS },
   { id: 'cashew',    frames: 61, left: 29.8, top: 0.7,  w: 21.0, h: 49.9, win: [0.12, 0.50], z: 0.10, shop: true,  label: 'Shop Cashews',    href: NUTS },
   { id: 'pistachio', frames: 61, left: 42.8, top: 8.7,  w: 18.3, h: 43.4, win: [0.22, 0.60], z: 0.16, shop: true,  label: 'Shop Pistachios', href: NUTS },
@@ -164,187 +163,25 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const smooth = (t: number) => t * t * (3 - 2 * t);
 const BASE = (import.meta as any).env?.BASE_URL ?? '/';
 const asset = (p: string) => `${BASE}hero/${p}`.replace(/\/{2,}/g, '/');
-const frameUrl = (id: string, i: number) => asset(`seq828/${id}/f_${String(i + 1).padStart(2, '0')}.webp`);
+// `trees/` holds the alpha-baked delivery frames (scripts/bake-tree-alpha.mjs).
+// The opaque masters they were keyed from live outside the app bundle.
+const frameUrl = (id: string, i: number) => asset(`trees/${id}/f_${String(i + 1).padStart(2, '0')}.webp`);
+const FRAME_W = 560;
+const FRAME_H = 749;
 
 /** Compensation so a plane at depth z shows the exact manifest footprint on screen. */
 const depthScale = (z: number) => (CAM_DIST - z) / CAM_DIST;
 
-/**
- * TREE MATERIAL — keys out the footage's baked backdrop.
- * ---------------------------------------------------------------------------
- * The tree sequences were rendered over a flat neutral grey (sampled: exactly
- * rgb(198,198,198)). That was invisible while the stage shared the same grey,
- * but the island now travels across cream, forest, walnut and dusk-blue rooms,
- * where the grey reads as an ugly box behind every tree.
+/*
+ * The tree sequences used to be keyed at runtime by a chroma-key shader, with
+ * per-tree backdrop sampling to cope with sequences that were rendered in
+ * separate batches (their backdrops ran 168-221, and pecan's was warm rather
+ * than neutral, which no saturation key could take cleanly).
  *
- * The key exploits the one thing that separates backdrop from subject: the
- * backdrop is NEUTRAL (r≈g≈b) at a known luminance, while foliage, bark,
- * blossom and fruit all carry colour. A pixel is treated as background only if
- * it is BOTH near-neutral AND near that luminance — so white blossom (neutral
- * but far brighter) and grey-brown bark (near that luminance but saturated)
- * both survive. Anti-aliased rim pixels key partially, which gives a free,
- * natural edge feather (this replaced the old radial alphaMap entirely).
+ * That is all gone. The frames under public/hero/trees carry real alpha, baked
+ * once by scripts/bake-tree-alpha.mjs, so a plain textured plane is correct and
+ * cheaper. Re-run that script if the source sequences are ever re-exported.
  */
-const TREE_VERT = /* glsl */ `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
-const TREE_FRAG = /* glsl */ `
-  uniform sampler2D uMap;
-  uniform float uOpacity;
-  uniform float uTol;                 // how far from the backdrop still counts as backdrop
-  // Backdrop luminance sampled at the four corners (linear space). The
-  // sequences were not lit flat — pecan's backdrop ramps from ~169 to ~236
-  // across the frame — so the expected backdrop is interpolated per pixel
-  // rather than compared against one number.
-  uniform float uKeyTL;
-  uniform float uKeyTR;
-  uniform float uKeyBL;
-  uniform float uKeyBR;
-  uniform float uFloor;               // nothing in the tree is this bright AND grey
-  varying vec2 vUv;
-
-  void main() {
-    vec4 c = texture2D(uMap, vUv);
-    float mx = max(c.r, max(c.g, c.b));
-    float mn = min(c.r, min(c.g, c.b));
-    float sat = mx - mn;              // ~0 on the neutral backdrop, high on foliage
-
-    // vUv.y = 1 at the TOP of the image for a CanvasTexture
-    float top = mix(uKeyTL, uKeyTR, vUv.x);
-    float bot = mix(uKeyBL, uKeyBR, vUv.x);
-    float key = mix(bot, top, vUv.y);
-
-    // How neutral this pixel is (1 = perfectly grey, 0 = clearly coloured).
-    // Foliage, bark, blossom and fruit all carry colour, so this alone
-    // protects the subject.
-    float neutral = 1.0 - smoothstep(0.018, 0.085, sat);
-
-    // RULE A — matches the interpolated backdrop level.
-    float matches = 1.0 - smoothstep(uTol * 0.35, uTol, abs(mx - key));
-
-    // RULE B — neutral AND brighter than anything in the tree. The sequences
-    // were lit with a soft gradient backdrop (pecan ramps 169→236), so a
-    // single level can't catch all of it; anything grey and above the floor is
-    // backdrop. Applied mostly in the UPPER frame, where the backdrop
-    // dominates and the subject is foliage — near the base, where pale nuts
-    // and moss live, it fades out so nothing gets punched out of the ground.
-    float upper = smoothstep(0.28, 0.62, vUv.y);
-    float bright = smoothstep(uFloor * 0.92, uFloor * 1.12, mx);
-    float aboveFloor = bright * upper;
-
-    float bg = neutral * max(matches, aboveFloor);
-
-    // Corner guard. Not every sequence has a neutral backdrop — pecan's ramps
-    // to a WARM (245,234,215) top corner, which no saturation-based key can
-    // take without also eating the nuts. A soft ellipse crops the plane's
-    // corners, which is exactly where those wash-outs live, and costs nothing.
-    vec2 p = (vUv - 0.5) * vec2(2.02, 1.94);
-    float vig = 1.0 - smoothstep(0.86, 1.02, length(p));
-
-    float a = (1.0 - bg) * vig * c.a * uOpacity;
-    if (a < 0.012) discard;
-    gl_FragColor = vec4(c.rgb, a);
-  }
-`;
-
-/**
- * The tree textures are tagged sRGB, so WebGL hands the shader LINEAR values —
- * the backdrop samples as ~0.565, not the 0.776 you'd measure in an image
- * editor. Converting here (rather than hard-coding a magic number) keeps the
- * key correct and self-documenting.
- */
-const srgbToLinear = (v: number) =>
-  v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-const TREE_KEY_LUM = srgbToLinear(198 / 255); // sensible default before sampling
-
-/**
- * Measure a sequence's actual backdrop instead of assuming one value.
- * The seven tree sequences were rendered in separate batches, so their
- * backdrops are NOT identical — sampled they run from ~168 to ~221, and some
- * carry a soft gradient. We walk the frame's border, keep only the
- * near-neutral samples (border pixels that are actually foliage are colourful
- * and get discarded), and take the median. Returns a LINEAR luminance ready
- * for the shader, or null if the border is too colourful to read.
- */
-type Corners = { tl: number; tr: number; bl: number; br: number };
-
-function sampleBackdropCorners(img: HTMLImageElement): Corners | null {
-  const W = 48;
-  const H = Math.max(4, Math.round((img.naturalHeight / img.naturalWidth) * W));
-  const c = document.createElement('canvas');
-  c.width = W;
-  c.height = H;
-  const cx = c.getContext('2d', { willReadFrequently: true });
-  if (!cx) return null;
-  cx.drawImage(img, 0, 0, W, H);
-
-  let data: ImageData;
-  try {
-    data = cx.getImageData(0, 0, W, H);
-  } catch {
-    return null; // tainted canvas — fall back to the default key
-  }
-
-  /** Neutral-only luminance at a pixel, or null if it's coloured (i.e. subject). */
-  const neutralAt = (x: number, y: number): number | null => {
-    const i = (y * W + x) * 4;
-    const r = data.data[i], g = data.data[i + 1], b = data.data[i + 2];
-    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
-    return mx - mn <= 12 ? mx / 255 : null;
-  };
-
-  const median = (xs: number[]) =>
-    xs.length ? xs.slice().sort((a, b) => a - b)[Math.floor(xs.length / 2)] : null;
-
-  // Every neutral border pixel, used only as a fallback for corners that are
-  // buried in foliage.
-  const all: number[] = [];
-  for (let x = 0; x < W; x++) {
-    for (const y of [0, 1, H - 2, H - 1]) {
-      const v = neutralAt(x, y);
-      if (v !== null) all.push(v);
-    }
-  }
-  for (let y = 0; y < H; y++) {
-    for (const x of [0, 1, W - 2, W - 1]) {
-      const v = neutralAt(x, y);
-      if (v !== null) all.push(v);
-    }
-  }
-  const global = median(all);
-  if (global === null || all.length < 8) return null;
-
-  /**
-   * Read each corner from a small window AT that corner. Quadrant-wide medians
-   * flatten the very gradient we're trying to model (pecan's true top-right is
-   * ~0.83 linear but its quadrant median reads ~0.49), which left a bright
-   * plate unkeyed.
-   */
-  const win = Math.max(3, Math.round(W * 0.14));
-  const cornerMedian = (x0: number, y0: number): number => {
-    const xs: number[] = [];
-    for (let x = x0; x < x0 + win; x++) {
-      for (let y = y0; y < y0 + win; y++) {
-        if (x < 0 || y < 0 || x >= W || y >= H) continue;
-        const v = neutralAt(x, y);
-        if (v !== null) xs.push(v);
-      }
-    }
-    return srgbToLinear(median(xs) ?? global);
-  };
-
-  return {
-    tl: cornerMedian(0, 0),
-    tr: cornerMedian(W - win, 0),
-    bl: cornerMedian(0, H - win),
-    br: cornerMedian(W - win, H - win),
-  };
-}
 
 /** Soft black ellipse with baked alpha — shared by tree base shadows, cloud + contact shadows. */
 function makeShadowTexture(): THREE.CanvasTexture {
@@ -482,78 +319,24 @@ function MaturingTree({
 
   const { ctx, tex } = useMemo(() => {
     const canvas = document.createElement('canvas');
-    canvas.width = 828; canvas.height = 1108;
+    canvas.width = FRAME_W; canvas.height = FRAME_H;
     const ctx = canvas.getContext('2d')!;
     const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
+    // straight (un-premultiplied) alpha, matching how the frames were baked
+    tex.premultiplyAlpha = false;
     return { ctx, tex };
   }, []);
-
-  const treeUniforms = useMemo(
-    () => ({
-      uMap: { value: tex },
-      uOpacity: { value: 1 },
-      uTol: { value: 0.17 },
-      // replaced per-tree once frame 0 loads (see sampleBackdropCorners)
-      uKeyTL: { value: TREE_KEY_LUM },
-      uKeyTR: { value: TREE_KEY_LUM },
-      uKeyBL: { value: TREE_KEY_LUM },
-      uKeyBR: { value: TREE_KEY_LUM },
-      uFloor: { value: TREE_KEY_LUM * 0.85 },
-    }),
-    [tex],
-  );
 
   const drawFrame = useCallback((f: number) => {
     const img = rt.current.imgs[f];
     if (!img) return;
-    const W = ctx.canvas.width, H = ctx.canvas.height;
-    ctx.clearRect(0, 0, W, H);
-    if (t.underfill) {
-      // The almond clips only ever grew ONE side of a sparse crown, so next to
-      // the lush trees it reads thin and half-bloomed. Build the canopy up in
-      // three passes, all clipped to the canopy band so the trunk stays single:
-      //   1. a horizontal MIRROR       → fills the bare side of the crown
-      //   2. two scaled/offset copies  → fill the gaps between sparse branches
-      //   3. the real frame on top     → keeps true detail + the one real trunk
-      const canopyH = H * 0.68;
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, 0, W, canopyH);
-      ctx.clip();
-
-      // 1. mirrored crown
-      ctx.save();
-      ctx.globalAlpha = 0.95;
-      ctx.translate(W, 0);
-      ctx.scale(-1, 1);
-      ctx.translate(-W * 0.06, 0);
-      ctx.drawImage(img, 0, 0);
-      ctx.restore();
-
-      // 2. density passes — same art, nudged and rescaled so blossoms
-      //    interleave into the empty space between branches
-      const fills: Array<[number, number, number, number]> = [
-        // [scale, dx (frac of W), dy (frac of H), alpha]
-        [1.1, -0.05, -0.03, 0.55],
-        [0.9, 0.06, 0.02, 0.45],
-      ];
-      for (const [sc, dx, dy, a] of fills) {
-        ctx.save();
-        ctx.globalAlpha = a;
-        ctx.translate(W * 0.5 + W * dx, canopyH * 0.5 + H * dy);
-        ctx.scale(sc, sc);
-        ctx.translate(-W * 0.5, -canopyH * 0.5);
-        ctx.drawImage(img, 0, 0);
-        ctx.restore();
-      }
-      ctx.restore();
-    }
-    ctx.drawImage(img, 0, 0); // real frame on top — trunk + true detail win
+    ctx.clearRect(0, 0, FRAME_W, FRAME_H);
+    ctx.drawImage(img, 0, 0);
     tex.needsUpdate = true;
     rt.current.cur = f;
     invalidate();
-  }, [ctx, tex, invalidate, t.underfill]);
+  }, [ctx, tex, invalidate]);
 
   useEffect(() => {
     let alive = true;
@@ -565,21 +348,6 @@ function MaturingTree({
     // reduced motion: only the ripe frame is ever needed (saves the whole sequence)
     const critical = reduced ? t.frames - 1 : 0;
     load(critical, () => {
-      // tune this tree's chroma key to ITS OWN backdrop before first paint
-      const img = rt.current.imgs[critical];
-      if (img) {
-        const k = sampleBackdropCorners(img);
-        if (k) {
-          treeUniforms.uKeyTL.value = k.tl;
-          treeUniforms.uKeyTR.value = k.tr;
-          treeUniforms.uKeyBL.value = k.bl;
-          treeUniforms.uKeyBR.value = k.br;
-          // the top corners are the most reliable read of the backdrop (the
-          // base of every frame is moss/ground), so the "grey and bright"
-          // floor is derived from the dimmer of the two
-          treeUniforms.uFloor.value = Math.min(k.tl, k.tr) * 0.85;
-        }
-      }
       drawFrame(critical);
       onReady();
     });
@@ -633,14 +401,9 @@ function MaturingTree({
       )}
       <mesh position={[0, h / 2, 0]}>
         <planeGeometry args={[w, h]} />
-        {/* chroma-keys the footage's baked grey backdrop — see TREE_FRAG */}
-        <shaderMaterial
-          vertexShader={TREE_VERT}
-          fragmentShader={TREE_FRAG}
-          uniforms={treeUniforms}
-          transparent
-          depthWrite={false}
-        />
+        {/* The frames carry real alpha now, so this is just a textured plane.
+            No key, no per-tree tuning, no shader — see scripts/bake-tree-alpha.mjs */}
+        <meshBasicMaterial map={tex} transparent depthWrite={false} toneMapped={false} />
       </mesh>
       {/* The per-tree "Shop <nut>" pills were replaced by ONE island sign
           (see <IslandSign/>) — six competing labels cluttered the orchard. */}
@@ -928,8 +691,12 @@ function IslandRig({
 
     // ---- hero pose (ripening) ----
     let px = lerp(0, -2.7, park);
-    let py = BASE_Y + bob + lerp(0.12, -0.06, e);
-    let ps = BASE_S * lerp(1.0, 1.08, e) * lerp(1, 0.9, park);
+    // The island ENTERS: it opens sitting low and a touch small, clear of the
+    // headline, then rises and grows as the harvest ripens. Two jobs at once —
+    // it stops the canopy colliding with the hero copy at scroll 0, and it
+    // gives the page an opening beat instead of starting fully arrived.
+    let py = BASE_Y + bob + lerp(-0.92, -0.06, e);
+    let ps = BASE_S * lerp(0.9, 1.08, e) * lerp(1, 0.9, park);
     let pr = sway * (1 + 1.1 * e);
 
     // ---- travel: once the hero beat is spent, ride the rooms' lanes ----
