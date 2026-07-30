@@ -145,5 +145,19 @@ All commerce operations go through `CommerceAdapter` (defined in `packages/core/
   2026-07-08 (see `apps/prototype-web/brand-src/hero-build/README-ASSET-INCIDENT.md`).
   Brand/source assets live in `apps/prototype-web/brand-src/`.
 
-## Relationship to Prototype Repo
-The working prototype at `/Users/danielcarney/Documents/simply-nuts-main/` feeds patterns into this monorepo. When migrating components, place shared ones in `packages/ui`.
+## Legacy prototype (archived 2026-07-30)
+The old standalone prototype that used to live at `~/Documents/simply-nuts-main` is
+**gone from disk**. It is frozen on the orphan branch `archive/simply-nuts-main`
+(no shared history with `master`, never merges into it).
+
+Retrieve a file without checking anything out:
+```bash
+git show archive/simply-nuts-main:src/components/LaserEngraveHero.tsx
+git checkout archive/simply-nuts-main -- src/components/LaserEngraveHero.tsx
+```
+
+See `ARCHIVE.md` on that branch for a file-by-file verdict. Short version: the
+laser-engraving animation is the only piece worth reusing (and its SVG paths are
+hand-guessed approximations of the wordmark, not traced from the real logo);
+cart/checkout must NOT come back, because Shopify owns those. When migrating any
+shared component, place it in `packages/ui`.
