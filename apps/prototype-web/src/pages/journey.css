@@ -81,13 +81,39 @@
 }
 
 @media (min-width: 1200px) {
+  /* Widened from 35vw/560px. At the old width the copy ran to 65% of the
+     viewport while the island's inner edge reached 59% — they overlapped in
+     every room. The corridor and the lane x were BOTH wrong; fixing only one
+     would have left the island either clipping copy or floating pointlessly
+     far off-frame. */
   .lane--right :is([class*="__inner"], .corp-inner, .max-w-6xl) {
-    padding-right: min(35vw, 560px);
+    padding-right: min(38vw, 600px);
   }
   .lane--left :is([class*="__inner"], .corp-inner, .max-w-6xl) {
-    padding-left: min(35vw, 560px);
+    padding-left: min(38vw, 600px);
   }
-  /* 'top' rooms keep their full width — the island rides above them */
+}
+
+/* Reserving a corridor takes ~38vw away from the copy, which is fine for prose
+   but wrecks three-column card grids — they collapse to ~290px columns and the
+   headings start breaking mid-phrase. Inside a side lane, drop to two columns
+   so each card keeps a readable measure. The island gets its path AND the
+   content still looks composed; squeezing both is what makes a layout read as
+   cramped rather than considered. */
+@media (min-width: 880px) and (max-width: 1599px) {
+  .lane--left :is(.health__grid, .health__stats, .corp-steps, .clients-quotes),
+  .lane--right :is(.health__grid, .health__stats, .corp-steps, .clients-quotes) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 'top' rooms are full-width, so the island cannot sit beside them — it rides
+   overhead. Reserve a band at the top of the room for it to occupy, otherwise
+   it lands squarely on the section heading. */
+@media (min-width: 880px) {
+  .lane[data-island-lane='top'] :is([class*="__inner"], .corp-inner, .max-w-6xl) {
+    padding-top: clamp(140px, 26vh, 260px);
+  }
 }
 
 /* --- shared reveal primitive -----------------------------------------------

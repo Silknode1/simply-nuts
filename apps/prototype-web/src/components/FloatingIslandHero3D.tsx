@@ -73,6 +73,28 @@ const SURFACE_Z = 0;
 const BASE_S = 0.85; // ~25% larger than the original 0.68 framing
 const BASE_Y = -1.27;
 
+/**
+ * Where the island ARTWORK actually sits inside its 9-unit plane.
+ *
+ * The layer planes are full-stage quads, but the art does not fill them —
+ * measured from the layers' own alpha, the surface's top edge lands at +4.095
+ * and the roots taper out at -4.374, against a visible range of -4.5..+4.5.
+ *
+ * Framing maths has to use these rather than the plane bounds, otherwise the
+ * roots get pushed off the bottom of the screen while the numbers still look
+ * like they fit. Re-measure if the layer art is ever re-exported:
+ *   magick layers/roots.webp -alpha extract -threshold 8% -format "%@" info:
+ */
+const ART_TOP = 4.095;
+const ART_BOTTOM = 4.374;
+
+/**
+ * The lowest the island may sit at a given scale before its roots leave the
+ * frame. Applied as a hard floor to every pose — hero, travel and lane flight
+ * alike — so no future choreography can reintroduce the clipping.
+ */
+const islandFloor = (s: number) => ART_BOTTOM * s - (STAGE_H / 2) + 0.06;
+
 // critical assets gating the loader: 2 island layers + 1 first frame per tree
 const CRITICAL_COUNT = 2 + TREES.length;
 
@@ -100,10 +122,23 @@ type Pose = { x: number; y: number; s: number; op: number; rot: number };
  * the copy. It stays close to fully opaque throughout — you should always be
  * able to see the orchard working.
  */
+/**
+ * Lane poses — where the island sits while a room is on screen.
+ *
+ * The x values are derived, not chosen. The island artwork spans roughly ±6.6
+ * on the 16-unit stage, so at lane scale its half-width is ~4.4. Sitting at
+ * x=6.2 put its inner edge at 59% across the viewport while the rooms' copy ran
+ * to 65% — a 6% overlap, every room, permanently. Combined with drift that
+ * pulled it further inward, that is why it looked like it was hunting for text
+ * to cover. Pushed out to 6.9, the inner edge clears the widened corridor.
+ */
 const LANE_POSE: Record<IslandLane, Pose> = {
-  right: { x: 6.2, y: 0.4, s: 0.72, op: 0.98, rot: -0.06 },
-  left: { x: -6.2, y: 0.4, s: 0.72, op: 0.98, rot: 0.06 },
-  top: { x: 0.2, y: 3.2, s: 0.55, op: 0.92, rot: 0.0 },
+  right: { x: 6.9, y: 0.4, s: 0.72, op: 0.98, rot: -0.06 },
+  left: { x: -6.9, y: 0.4, s: 0.72, op: 0.98, rot: 0.06 },
+  // 'top' rooms are full-width, so the island rides overhead and shrinks to
+  // claim less of the viewport; those rooms reserve a top band instead (see
+  // .lane[data-island-lane='top'] in journey.css).
+  top: { x: 0.2, y: 2.7, s: 0.46, op: 0.92, rot: 0.0 },
 };
 
 /** Pose the moment the hero beat ends — parked left, still large. */
@@ -119,7 +154,13 @@ const mixPose = (a: Pose, b: Pose, k: number): Pose => ({
   rot: lerp(a.rot, b.rot, k),
 });
 
-type LaneAnchor = { center: number; side: IslandLane };
+/**
+ * A room's claim on the island. `top`/`bottom` matter as much as `center`:
+ * these rooms are not uniform, and the corporate room is over 3000px tall.
+ * Anchoring the flight on centres alone meant the island began crossing to the
+ * next room's lane while the current room's copy was still filling the screen.
+ */
+type LaneAnchor = { top: number; bottom: number; center: number; side: IslandLane };
 
 /**
  * Sample the flight path from the REAL positions of the lane anchors in the
@@ -145,13 +186,33 @@ function poseFromLanes(anchors: LaneAnchor[], focus: number): Pose {
     const k = smooth(clamp((focus - last.center) / span, 0, 1));
     return mixPose(LANE_POSE[last.side], LIFTOFF_POSE, k);
   }
-  // between two rooms: cross from one corridor to the next
+  // between two rooms: DWELL in each corridor, then cross quickly at the seam.
+  //
+  // This used to interpolate straight from one room's centre to the next, which
+  // meant the island was only ever in a corridor at the exact centre of a room
+  // and spent all the scroll in between drifting across the middle of the page
+  // — directly over the copy. That is why it looked like it was deliberately
+  // seeking out text: crossing WAS its default state.
+  //
+  // Remapping the interpolation so it holds at 0 for the first third and 1 for
+  // the last third means the island sits in the reserved corridor for most of
+  // each room and makes its move at the seam, where the ridge divider is — the
+  // one band with no copy in it.
   for (let i = 0; i < anchors.length - 1; i++) {
     const a = anchors[i];
     const b = anchors[i + 1];
     if (focus >= a.center && focus <= b.center) {
-      const span = Math.max(b.center - a.center, 1);
-      const k = smooth(clamp((focus - a.center) / span, 0, 1));
+      // The crossing happens in a band centred on the SEAM between the two
+      // rooms — the ridge divider — not spread across the whole gap between
+      // their centres. Everywhere else the island is parked in a corridor.
+      //
+      // Keying off the seam rather than the centres is what makes this hold up
+      // for rooms of wildly different heights: a 3000px room and a 600px room
+      // both keep the island in their lane for as long as their copy is on
+      // screen, instead of the taller one surrendering it half a screen early.
+      const seam = (a.bottom + b.top) / 2;
+      const half = Math.max(window.innerHeight * 0.45, 1);
+      const k = smooth(clamp((focus - (seam - half)) / (half * 2), 0, 1));
       return mixPose(LANE_POSE[a.side], LANE_POSE[b.side], k);
     }
   }
@@ -366,10 +427,21 @@ function MaturingTree({
     const p = progressRef.current;
     const [a, b] = t.win;
     const local = clamp((p - a) / (b - a), 0, 1);
-    const f = clamp(Math.round(local * (t.frames - 1)), 0, t.frames - 1);
+
+    /**
+     * THE BLOOM — this is the hero animation, so it is staged, not just played.
+     *
+     * Frame playback used to be linear against scroll, which spends the whole
+     * window at one constant rate: nothing builds, nothing lands. Easing it
+     * in-out means the tree hesitates, then rushes through the blossom-to-fruit
+     * frames where the change is most visible, then settles — the same reason a
+     * cut lands better than a dissolve.
+     */
+    const bloom = local < 0.5 ? 2 * local * local : 1 - Math.pow(-2 * local + 2, 2) / 2;
+    const f = clamp(Math.round(bloom * (t.frames - 1)), 0, t.frames - 1);
     if (f !== rt.current.cur && rt.current.imgs[f]) drawFrame(f);
     // maturation deepens the tree's ground shadow; scroll shifts it — the sun moving
-    if (shadowMat.current) shadowMat.current.opacity = 0.1 + 0.3 * local;
+    if (shadowMat.current) shadowMat.current.opacity = 0.1 + 0.34 * bloom;
     if (shadowEl.current) shadowEl.current.position.x = w * lerp(-0.06, 0.12, smooth(p));
     if (reduced || !groupEl.current) return;
     const ms = clock.elapsedTime * 1000;
@@ -378,16 +450,29 @@ function MaturingTree({
     // wilder as the harvest ripens
     groupEl.current.rotation.z =
       (Math.sin(ms / 1900 + index * 1.7) * 0.012 + Math.sin(ms / 640 + index * 2.3) * 0.004) * chaos;
-    // one satisfying pulse the moment the tree finishes ripening
+
+    /**
+     * GROWTH — the tree physically swells as it ripens, with a slight overshoot
+     * before it settles. Frame-swapping alone changes what the tree looks like
+     * but not how much space it commands, which is why the ripening used to
+     * read as a texture change rather than as growth.
+     */
+    const overshoot = 1 + 2.2 * Math.pow(bloom - 1, 3) + 1.2 * Math.pow(bloom - 1, 2);
+    const grow = lerp(0.84, 1, overshoot);
+
+    // The moment it finishes: a real pop, not a twitch. Big enough to catch the
+    // eye in peripheral vision as the next tree starts its own window.
     if (local >= 1 && rt.current.pulseStart < 0) rt.current.pulseStart = ms;
     let pulse = 1;
     if (rt.current.pulseStart >= 0) {
-      const k = clamp((ms - rt.current.pulseStart) / 420, 0, 1);
-      pulse = 1 + 0.05 * Math.sin(k * Math.PI);
+      const k = clamp((ms - rt.current.pulseStart) / 640, 0, 1);
+      // decaying bounce rather than a single hump — it rings, then rests
+      pulse = 1 + 0.11 * Math.sin(k * Math.PI * 2) * (1 - k);
     }
     // canopy "breathe": a slight vertical stretch that reads as leaves rustling
     const rustle = 1 + Math.sin(ms / 480 + index * 3.1) * 0.004 * chaos;
-    groupEl.current.scale.set(s * pulse, s * pulse * rustle, s * pulse);
+    const k = s * grow * pulse;
+    groupEl.current.scale.set(k, k * rustle, k);
   });
 
   return (
@@ -426,7 +511,12 @@ function IslandSign({ progressRef }: { progressRef: React.MutableRefObject<numbe
   });
 
   return (
-    <Html position={[0, 3.15, 0.36]} center wrapperClass="fih__hotspot-wrap">
+    /* Sat at y=3.15, floating above the canopy where it collided with the hero
+       copy and with whatever room the island was passing. Moved to the island's
+       centre line just below the grass — measured from the surface layer's own
+       alpha, the soil edge runs out around y=-0.5, so -0.85 tucks the sign into
+       the island's own body where it has nothing to fight with. */
+    <Html position={[0, -0.85, 0.42]} center wrapperClass="fih__hotspot-wrap">
       <a
         ref={el}
         className="fih__hotspot fih__hotspot--sign"
@@ -663,6 +753,8 @@ function IslandRig({
 }) {
   const group = useRef<THREE.Group>(null);
   const pointer = useRef({ x: 0, y: 0 });
+  // what the island is actually showing, chasing what the scroll reader wants
+  const damped = useRef({ p: 0, travel: 0 });
 
   useEffect(() => {
     if (reduced) return;
@@ -674,11 +766,30 @@ function IslandRig({
     return () => window.removeEventListener('pointermove', onMove);
   }, [reduced]);
 
-  useFrame(({ camera, clock }) => {
+  useFrame(({ camera, clock }, delta) => {
     if (reduced || !group.current) return;
     const g = group.current;
     const ms = clock.elapsedTime * 1000;
-    const p = progressRef.current;
+
+    /**
+     * SCROLL DAMPING — the single biggest contributor to how the journey feels.
+     *
+     * The scroll reader writes progress 1:1 with scrollY, so every wheel tick
+     * used to move the island instantly. Mouse wheels arrive as coarse, uneven
+     * jumps, which is exactly why it read as jittery rather than cinematic.
+     * Following the target instead of snapping to it gives the island weight —
+     * it leads and trails the scroll slightly, the way a heavy object would.
+     *
+     * The exponential makes this frame-rate independent: identical motion at
+     * 60Hz and 120Hz. A plain `+= diff * 0.1` would run twice as fast on a
+     * 120Hz display, which is how scroll animations end up feeling different
+     * on different machines.
+     */
+    const follow = 1 - Math.exp(-delta * 5.5);
+    damped.current.p += (progressRef.current - damped.current.p) * follow;
+    damped.current.travel += (travelRef.current - damped.current.travel) * follow;
+
+    const p = damped.current.p;
     const e = smooth(p);
     // closing beat: the island parks to the left while the featured-product
     // panel blooms in on the right (see FeaturedHarvest / onUpdate driver)
@@ -686,32 +797,50 @@ function IslandRig({
     // idle life is layered sines; everything gets a little wilder as the
     // harvest ripens (chaos), while the island sinks, tilts and grows
     const chaos = 1 + 0.4 * e;
-    const bob = (Math.sin(ms / 1400) * 0.12 + Math.sin(ms / 530) * 0.02) * chaos;
-    const sway = Math.sin(ms / 2600) * 0.009 + Math.sin(ms / 970) * 0.003;
+    // Idle life is deliberately SLOW. The old bob carried a 0.53s harmonic,
+    // which at this scale reads as vibration rather than floating — it fought
+    // the scroll for attention instead of supporting it.
+    const bob = (Math.sin(ms / 2600) * 0.1 + Math.sin(ms / 1100) * 0.02) * chaos;
+    const sway = Math.sin(ms / 3400) * 0.008 + Math.sin(ms / 1500) * 0.0025;
 
     // ---- hero pose (ripening) ----
     let px = lerp(0, -2.7, park);
-    // The island ENTERS: it opens sitting low and a touch small, clear of the
-    // headline, then rises and grows as the harvest ripens. Two jobs at once —
-    // it stops the canopy colliding with the hero copy at scroll 0, and it
-    // gives the page an opening beat instead of starting fully arrived.
-    let py = BASE_Y + bob + lerp(-0.92, -0.06, e);
-    let ps = BASE_S * lerp(0.9, 1.08, e) * lerp(1, 0.9, park);
+    // The island ENTERS: it opens smaller and clear of the headline, then rises
+    // and grows as the harvest ripens, so the page has an opening beat instead
+    // of starting fully arrived.
+    //
+    // These numbers are framing-derived, not taste: at hero scale the artwork
+    // spans ART_TOP..ART_BOTTOM, and the previous values put the roots 1.04
+    // units past the bottom of a stage that is only 9 units tall. That is the
+    // "island is cut off" report — it was clipped at BOTH ends of the scroll.
+    let py = BASE_Y + bob + lerp(0.52, 0.72, e);
+    let ps = BASE_S * lerp(0.72, 1.06, e) * lerp(1, 0.9, park);
     let pr = sway * (1 + 1.1 * e);
 
     // ---- travel: once the hero beat is spent, ride the rooms' lanes ----
     const tv = travelRef.current;
     if (tv > 0) {
       const pose = poseRef.current;
-      // The island never parks. On top of the lane pose it keeps a wide, slow
-      // orbit plus a faster wobble, so it is ALWAYS moving through the page —
-      // drifting in and out of its corridor rather than sitting in it.
-      // drift stays inside the reserved corridor — wide enough to feel alive,
-      // never so wide that it wanders onto the copy
-      const driftX = Math.sin(ms / 5200) * 0.85 + Math.sin(ms / 2100) * 0.3;
-      const driftY = Math.cos(ms / 4300) * 0.9 + Math.sin(ms / 1700) * 0.25;
-      const breathe = 1 + Math.sin(ms / 6100) * 0.09; // grows and shrinks as it goes
-      const tumble = Math.sin(ms / 3300) * 0.09 + Math.sin(ms / 1250) * 0.03;
+      /**
+       * Drift is OUTWARD-ONLY.
+       *
+       * A symmetric sine spends half its cycle pulling the island back toward
+       * the middle of the page — straight over the copy it is supposed to be
+       * flying beside. That is why it reads as if the island is deliberately
+       * seeking out text and images to cover.
+       *
+       * Taking |sine| and pushing it along the lane's own outward direction
+       * keeps every excursion heading away from the content. The lane x is now
+       * the CLOSEST the island ever comes to the copy, not its average.
+       */
+      const outward = pose.x >= 0 ? 1 : -1;
+      const driftX =
+        outward * (Math.abs(Math.sin(ms / 7400)) * 0.62 + Math.abs(Math.sin(ms / 3100)) * 0.18);
+      // Vertical drift stays symmetric — nothing is beside the island above or
+      // below it, so this is free movement. Slowed to match the calmer idle.
+      const driftY = Math.cos(ms / 6200) * 0.55 + Math.sin(ms / 2600) * 0.14;
+      const breathe = 1 + Math.sin(ms / 8200) * 0.05; // grows and shrinks as it goes
+      const tumble = Math.sin(ms / 5200) * 0.05 + Math.sin(ms / 2400) * 0.018;
 
       // blend out of the hero pose over the first slice of travel so the
       // hand-off is a continuous glide, not a jump
@@ -722,8 +851,12 @@ function IslandRig({
       pr = lerp(pr, pose.rot + tumble + sway * 2.2, blend);
     }
 
+    // Hard floor: whatever the hero beat, the lane pose and the idle drift
+    // between them worked out to, the roots stay on screen. Clamping the
+    // RESULT rather than each contributor means a future lane or drift tweak
+    // cannot quietly bring the clipping back.
     g.position.x = px;
-    g.position.y = py;
+    g.position.y = Math.max(py, islandFloor(ps));
     g.rotation.z = pr;
     g.rotation.x = lerp(0.018, -0.045, e);
     g.scale.setScalar(ps);
@@ -803,8 +936,11 @@ export default function FloatingIslandHero3D() {
       lanesRef.current = nodes
         .map((el) => {
           const r = el.getBoundingClientRect();
+          const top = r.top + window.scrollY;
           return {
-            center: r.top + window.scrollY + r.height / 2,
+            top,
+            bottom: top + r.height,
+            center: top + r.height / 2,
             side: (el.dataset.islandLane as IslandLane) || 'right',
           };
         })
